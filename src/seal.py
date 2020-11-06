@@ -40,23 +40,31 @@ class seal(mesh.mesh):
         self.u_s = params.get('u_s')
         self.rho_s = params.get('rho_s')
         self.mu_s = params.get('mu_s') 
-        self.rotor_rpm = params.get('rotor_rpm')
+        self.rpm_rotor = params.get('rpm_rotor')
  
         self.p_in = params.get('p_in')
-        self.p_exit =  params.get('p_exit')
         self.xi_in = params.get('xi_in')
+        self.rpm_inlet =  params.get('rpm_inlet')
+        self.p_exit =  params.get('p_exit')        
         self.xi_exit =  params.get('xi_exit')
-        self.sr =  params.get('sr')
+
         self.friction = params.get('friction')
         self.rotor_roughness = params.get('rotor_roughness')
         self.stator_roughness = params.get('stator_roughness')
         self.whirl_f = params.get('whirl_f')    
+        
+        self.read_restart = params.get('read_restart')
+        self.save_restart = params.get('save_restart') 
+        self.print_residuals = params.get('print_residuals')       
+        self.plot_figs = params.get('print_output')
+        self.pert_dir = params.get('pert_dir') 
         #
         self.zeroth_converged = 0
         
         # derived parameters
-        self.v_rotor = self.rotor_rpm * 2. * np.pi * self.R / 60.
-        self.Omega = self.rotor_rpm * 2. * np.pi / 60.
+        self.v_rotor = self.rpm_rotor * 2. * np.pi * self.R / 60.
+        self.v_inlet = self.rpm_inlet * 2. * np.pi * self.R / 60.
+        self.Omega = self.rpm_rotor * 2. * np.pi / 60.
         
         self._non_dim_var()
         self._init_var_arrays()
@@ -71,7 +79,7 @@ class seal(mesh.mesh):
         self.p_i = self.p_in / (self.rho_s * self.u_s ** 2)  # non-dim pressure
         self.p_e = self.p_exit / (self.rho_s * self.u_s ** 2)
         self.u_i = 1.0 # 0.0 / u_s  # non-dim
-        self.v_i = self.sr * self.v_rotor / self.u_s
+        self.v_i = self.v_inlet / self.u_s
         self.v_r = self.v_rotor / self.u_s
         self.Re = self.rho_s * self.u_s * self.R / self.mu_s # Reynolds number 
         self.sigma = self.whirl_f * self.R / self.u_s

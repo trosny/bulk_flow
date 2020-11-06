@@ -8,12 +8,7 @@ class mesh(object):
         # input parameters
         self.Nx = params.get('Nx')
         self.Ny = params.get('Ny')
-        #
-        self.read_restart = params.get('read_restart')
-        self.save_restart = params.get('save_restart') 
-        self.print_residuals = params.get('print_residuals')       
-        self.plot_figs = params.get('print_output')
-        self.pert_dir = params.get('pert_dir') 
+
         #
         self.L = params.get('L')
         self.R = params.get('R') 
