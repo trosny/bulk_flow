@@ -59,22 +59,30 @@ class seal(mesh.mesh):
         self.plot_figs = params.get('print_output')
         self.pert_dir = params.get('pert_dir') 
         #
-        self.zeroth_converged = 0
+        restart_seal()
+
         
-        # derived parameters
-        self.v_rotor = self.rpm_rotor * 2. * np.pi * self.R / 60.
-        self.v_inlet = self.rpm_inlet * 2. * np.pi * self.R / 60.
-        self.Omega = self.rpm_rotor * 2. * np.pi / 60.
+    def update_seal(self):
+        self._seal_params()
+        self._init_zeroth_bcs()
         
-        self._non_dim_var()
+    def restart_seal(self):
+        self.zeroth_converged = 0      
+        self._seal_params()
         self._init_var_arrays()
         self._init_zeroth_bcs()
         self._init_zeroth_pressure()
         self._init_zeroth_massflux()
-        
-    def _non_dim_var(self):
-        ''' non-dimensionalize variables
+
+    
+    def _seal_params(self):
+        ''' derived and non-dimensionalize parameters
         '''
+        # derived parameters
+        self.v_rotor = self.rpm_rotor * 2. * np.pi * self.R / 60.
+        self.v_inlet = self.rpm_inlet * 2. * np.pi * self.R / 60.
+        self.Omega = self.rpm_rotor * 2. * np.pi / 60.
+        #
         self.rho_init = self.rho_s / self.rho_s
         self.p_i = self.p_in / (self.rho_s * self.u_s ** 2)  # non-dim pressure
         self.p_e = self.p_exit / (self.rho_s * self.u_s ** 2)

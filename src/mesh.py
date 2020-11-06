@@ -17,7 +17,22 @@ class mesh(object):
         self.ey =  params.get('ey')
         self.angX = params.get('angX') 
         self.angY =  params.get('angY')     
-
+        #
+        self.update_mesh()
+    
+    def update_mesh(self):
+        self._mesh_params()
+        self._init_mesh_arrays()
+        self._generate_points()
+        self._generate_mesh()
+        self._compute_h()
+        self._compute_hf()
+        self._compute_int()
+        self._compute_cyclic_int()
+     
+    def _mesh_params(self):
+        self.Lx = self.L / self.R
+        self.Ly = 2. * np.pi * self.R / self.R
         self.Np = (self.Nx + 1) * (self.Ny + 1)  # number of points
         self.Nc = self.Nx * self.Ny  # number of cells
         self.Nf = self.Ny * (self.Nx  + 1) + self.Nx  * (self.Ny + 1)  # total number of faces, 4
@@ -30,23 +45,7 @@ class mesh(object):
         self.Nfstart = [self.Nfint, self.Nfint + self.Nfcycle1, \
                         self.Nfint + self.Nfcycle1 + self.Nfoutlet, \
                         self.Nfint + self.Nfcycle1 + self.Nfoutlet + self.Nfcycle2]  #
-        #
-        self._non_dim_mesh()
-        self._init_mesh_arrays()
-        self._generate_points()
-        self._generate_mesh()
-        self._compute_h()
-        self._compute_hf()
-        self._compute_int()
-        self._compute_cyclic_int()
-    
      
-    def _non_dim_mesh(self):
-        ''' non-dimensionalize parameters
-        '''
-        self.Lx = self.L / self.R
-        self.Ly = 2. * np.pi * self.R / self.R
-
         
     def _init_mesh_arrays(self): 
         self.x = np.linspace(0, self.Lx, self.Nx  + 1 , dtype=np.float64)  # points in axial dir.

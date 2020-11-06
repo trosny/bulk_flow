@@ -17,7 +17,7 @@ rpm_inlet : 3000.0        # inlet rotational speed [rpm]
 p_exit : 4.9e+05          # exit total pressure [Pa]
 xi_exit : 1.0             # exit recoviery coefficient
 # friction choices : 'blasius', 'hirs', 'haaland', 'universal'
-friction: 'blasius' # 
+friction : 'blasius' # 
 rotor_roughness : 0.0     # rotor relative roughness [-]
 stator_roughness : 0.0    # stator relative roughness [-]
 # numerical
@@ -40,7 +40,7 @@ nCorrectors : 2           # number of explicit corrections, 2-3 good choice
 whirl_f : 50.0            # rotor whirling frequency [rad/s]
 read_restart : False      # inactive
 save_restart : False      # inactive
-print_residuals : True    # True : print residuals
+print_residuals : True    # inactive, True : print residuals
 print_output : True       # inactive
-pert_dir : 'X'            # pertubation direction for 1-st order solution
+pert_dir : 'X'            # inactive, pertubation direction for 1-st order solution
                           # 'X' or 'Y'
