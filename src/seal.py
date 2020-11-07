@@ -59,7 +59,7 @@ class seal(mesh.mesh):
         self.plot_figs = params.get('print_output')
         self.pert_dir = params.get('pert_dir') 
         #
-        restart_seal()
+        self.restart_seal()
 
         
     def update_seal(self):
