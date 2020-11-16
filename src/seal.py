@@ -78,7 +78,7 @@ class seal(mesh.mesh):
 
     
     def _seal_params(self):
-        ''' derived and non-dimensionalize parameters
+        ''' derived and non-dimensionalized parameters
         '''
         # derived parameters
         self.v_rotor = self.rpm_rotor * 2. * np.pi * self.R / 60.
@@ -128,13 +128,15 @@ class seal(mesh.mesh):
         self.rhobc = np.ones(self.Nfbc, dtype=np.float64) * self.rho_init
         
         self.grad_p = np.zeros([self.Nc, 2], dtype=np.float64)
+        self.grad_u = np.zeros([self.Nc, 2], dtype=np.float64)
+        self.grad_v = np.zeros([self.Nc, 2], dtype=np.float64)
         self.grad_p_corr = np.zeros([self.Nc, 2], dtype=np.float64)
         
         # first order problem            
         self.u1 = np.zeros(self.Nc, dtype=np.complex128)
         self.v1 = np.zeros(self.Nc, dtype=np.complex128)
         self.press1 = np.zeros(self.Nc, dtype=np.complex128)
-        self.p_corr1 = np.zeros(self.Nc, dtype=np.complex128)
+        self.p1_corr = np.zeros(self.Nc, dtype=np.complex128)
         self.phi1 = np.zeros(self.Nf, dtype=np.complex128)
         self.u1bc = np.zeros(self.Nfbc , dtype=np.complex128)
         self.v1bc = np.zeros(self.Nfbc, dtype=np.complex128)
@@ -142,7 +144,9 @@ class seal(mesh.mesh):
         self.bu1 = np.zeros(self.Nc, dtype=np.complex128)
         self.bv1 = np.zeros(self.Nc, dtype=np.complex128)
         self.bp1 = np.zeros(self.Nc, dtype=np.complex128)    
-        self.p_corr1_bc = np.zeros(self.Nfbc, dtype=np.complex128) 
+        self.p1_corr_bc = np.zeros(self.Nfbc, dtype=np.complex128) 
+        self.grad_p1 = np.zeros([self.Nc, 2], dtype=np.complex128)
+        self.grad_p1_corr = np.zeros([self.Nc, 2], dtype=np.complex128)
       
 
     def solve_zeroth(self):
@@ -158,8 +162,8 @@ class seal(mesh.mesh):
             #self.A = self.A.tolil() * 0.0
             self._setup_zeroth_uv()
             self.u_star = spsolve(self.A.tocsr(), self.bu)
-            #self.v_star = spsolve(self.A.tocsr(), self.bv)
-            self.v_star = spsolve(self.A2.tocsr(), self.bv)
+            self.v_star = spsolve(self.A.tocsr(), self.bv)
+            #self.v_star = spsolve(self.A2.tocsr(), self.bv)
             
             self.Dp = self.cell[:,2] * self.hc / self.apu
             self._cc_to_int_faces(self.Df, self.Dp)
@@ -189,11 +193,12 @@ class seal(mesh.mesh):
             #print(self.grad_p_corr[:,0])
      
             self._correct_phi(self.phi, self.rho, self.rhobc, self.p_corr, self.p_corr_bc)
-            self._update_zeroth_bcs()            
+                        
+            self._update_zeroth_bcs()
             
             for idx in range(self.nCorrectors):
                 self.grad_p = self._cc_grad(self.grad_p, self.press, self.pbc)
-                self._solve_uv_explicit()
+                self.u_star, self.v_star = self._solve_uv_explicit()
 
                 self.phi = self._massflux_rhiechow(self.phi, self.rho, self.u, \
                              self.v, self.press, self.grad_p, self.rhobc, \
@@ -211,14 +216,14 @@ class seal(mesh.mesh):
                 self._correct_phi(self.phi, self.rho, self.rhobc, self.p_corr, self.p_corr_bc)
 
                 self._update_zeroth_bcs()
-                          
+                      
             
             # inlet and outlet mass flux
             m_out = np.sum( self.phi[self.Nfstart[1]:self.Nfstart[2]] )
             m_in = np.sum( self.phi[self.Nfstart[3]:self.Nf] )
             # residuals / errors
             u_error = np.sum( np.abs( self.bu - self.A.dot(self.u) ) )
-            v_error = np.sum( np.abs( self.bv - self.A2.dot(self.v) ) ) 
+            v_error = np.sum( np.abs( self.bv - self.A.dot(self.v) ) ) 
             m_error = np.sum(np.abs(self.bp) )
             
             outer_iter += 1
@@ -240,6 +245,64 @@ class seal(mesh.mesh):
 
         print('leakage rate kg/s, fx [N], fy [N], inlet p [kPa]')
         print(self.q, self.fx, self.fy, ps_in/1e3)
+        
+    def solve_first(self):
+        # update seal parameters in case whirl frequency changed
+        self._seal_params()
+    
+        # zeroth-order velocity gradients
+        self.grad_u = self._cc_grad(self.grad_u, self.u, self.ubc)
+        self.grad_v = self._cc_grad(self.grad_v, self.v, self.vbc)
+        
+        
+        outer_iter = 0
+        m_error = 1.0
+        u_error = 1.0
+        v_error = 1.0
+            
+        while (outer_iter < self.max_it_pert and ( m_error > self.m_tol or u_error > self.u_tol or v_error > self.u_tol )  ):
+        
+            self.grad_p1 = self._cc_grad(self.grad_p1, self.press1, self.p1bc)
+
+            self._setup_first_uv()
+            self.u_star1 = spsolve(self.A.tocsr(), self.bu1)
+            self.v_star1 = spsolve(self.A.tocsr(), self.bv1)              
+            
+            self.phi1 = self._massflux_rhiechow(self.phi1, self.rho, self.u1, \
+                             self.v1, self.press1, self.grad_p1, self.rhobc, \
+                             self.p1bc, self.u1bc, self.v1bc)  
+                                              
+
+            self._setup_first_p()
+            self.p1_corr = spsolve(self.Ap.tocsr(), self.bp1)  
+
+            self.grad_p1_corr = self._cc_grad(self.grad_p1_corr, self.p1_corr, self.p1_corr_bc)        
+
+            self.u1 = self.u_star1 - self.Dp * self.grad_p1_corr[:,0]
+            self.v1 = self.v_star1 - self.Dp * self.grad_p1_corr[:,1]
+            self.press1 = self.press1 + self.relax_p * self.p1_corr
+
+     
+            self._correct_phi(self.phi1, self.rho, self.rhobc, self.p1_corr, self.p1_corr_bc)
+            #self._update_first_bcs()            
+            
+            # residuals / errors
+            u_error = np.sum( np.abs( self.bu1 - self.A.dot(self.u1) ) )
+            v_error = np.sum( np.abs( self.bv1 - self.A.dot(self.v1) ) ) 
+            m_error = np.sum(np.abs(self.bp1) )
+            
+            outer_iter += 1
+            if self.print_residuals:
+                print("{a:g} {b:g} {c:g} {d:g} ".format(a=outer_iter, b=m_error, c=u_error, d=v_error))
+        
+        
+        fx1, fy1 = forces(self.press1, self.cell)
+        self.fx1 = fx1 * self.rho_s * self.u_s ** 2 * self.R  ** 2 / self.C
+        self.fy1 = fy1 * self.rho_s * self.u_s ** 2 * self.R  ** 2 / self.C
+        
+        # print("Re(f_x1) : {a:g} Im(f_x1) : {b:g}".format(a=np.real(self.fx1)/1e6,b=np.imag(self.fx1)/1e6))
+        # print("Re(f_yu1) : {a:g} Im(f_y1) : {b:g}".format(a=np.real(self.fy1)/1e6,b=np.imag(self.fy1)/1e6))
+        
             
 
     def _init_zeroth_bcs(self):
@@ -303,6 +366,38 @@ class seal(mesh.mesh):
                 self.pbc[idx] = self.pbc[idx] + self.relax_p * self.p_corr_bc[idx]
                 self.ubc[idx] = self.u[p]
                 self.vbc[idx] = self.v[p]
+            idx += 1
+
+    def _update_first_bcs(self):
+        ''' first order bcs
+        '''
+        sf = self.sf
+        owner = self.owner
+        cn = self.cn 
+        hf = self.hf
+        phi1 = self.phi1
+        
+        idx = 0
+        for i in range(self.Nfstart[0], self.Nf):
+            p = owner[i]
+            if self.bc_type[idx] == 1:  # total pressure inlet
+                area = np.sqrt(sf[i, 0] ** 2 + sf[i, 1] ** 2) * hf[i]
+                self.u1bc[idx] = phi1[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
+                #self.u1bc[idx] = self.u1[p]
+                self.p1bc[idx] = - (1.0 + self.xi_in) * self.ubc[idx] * self.u1bc[idx]
+            if self.bc_type[idx] == 2:  # outlet
+                area = np.sqrt(sf[i, 0] ** 2 + sf[i, 1] ** 2) * hf[i]
+                self.u1bc[idx] =  phi1[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
+                #self.u1bc[idx] = self.u1[p]
+                self.v1bc[idx] = self.v1[p]
+                self.p1bc[idx] = - (1.0 - self.xi_exit) * self.ubc[idx] * self.u1bc[idx]
+                
+            if self.bc_type[idx] == 0:  # solid wall
+                pass
+            if self.bc_type[idx] == 3 or self.bc_type[idx] == 4:  # cyclic bcs
+                self.p1bc[idx] = self.p1bc[idx] + self.relax_p * self.p1_corr_bc[idx]
+                self.u1bc[idx] = self.u1[p]
+                self.v1bc[idx] = self.v1[p]
             idx += 1
 
     def _init_zeroth_pressure(self):
@@ -608,6 +703,77 @@ class seal(mesh.mesh):
         self.bu += (1. - self.relax_uv) * self.apu * self.u  # relaxation has been applied to ap, i.e. ap = ap / relax
         self.bv += (1. - self.relax_uv) * self.apv * self.v
 
+    def _setup_first_uv(self):
+        '''
+        Source terms for first-order momentum equations
+        '''
+
+        hc = self.hc
+        rho = self.rho
+        u = self.u
+        v = self.v
+        u1 = self.u1
+        v1 = self.v1
+        grad_p = self.grad_p
+        grad_u = self.grad_u
+        grad_v = self.grad_v
+        cell = self.cell
+        
+        self.bu1 = 0.0 * self.bu1
+        self.bv1 = 0.0 * self.bv1
+
+        U_r, U_s, f_r, f_s = self._compute_friction(self.u, self.v)
+        
+        m = -0.25
+
+        # source terms
+        for i in range(self.Nc):
+            self.bu1[i] += - hc[i] * self.grad_p1[i, 0] * cell[i, 2]  # pressure
+            self.bv1[i] += - hc[i] * self.grad_p1[i, 1] * cell[i, 2]  # pressure
+            
+            if self.pert_dir == 'X':
+                h_psi = np.cos(cell[i,1])
+            if self.pert_dir == 'Y':
+                h_psi = np.sin(cell[i,1])
+            
+            if self.friction == 'blasius':
+
+                self.bu1[i] += (- rho[i] * hc[i] * u1[i] * grad_u[i, 0]  \
+                         - rho[i] * hc[i] * v1[i] * grad_u[i, 1]  \
+                         - rho[i] * h_psi * u[i] * grad_u[i, 0]  \
+                         - rho[i] * h_psi * v[i] * grad_u[i, 1] \
+                         - grad_p[i, 0] * h_psi \
+                         - 0.5 * (self.R / self.C) * rho[i] * u[i] * ( \
+                         + (1. + m) * f_r[i] / U_r[i] * ( u[i] * u1[i] + (v[i] - self.v_r) * v1[i] ) \
+                         + (1. + m) * f_s[i] / U_s[i] * ( u[i] * u1[i] + v[i] * v1[i] ) \
+                         + U_s[i] * m * f_s[i] * h_psi / hc[i]  \
+                         + U_r[i] * m * f_r[i] * h_psi / hc[i] ) \
+                         - 1j * self.sigma * rho[i] * hc[i] * u1[i] ) * cell[i,2]                                        
+                
+                self.bv1[i] += ( - rho[i] * hc[i] * u1[i] * grad_v[i, 0]  \
+                         - rho[i] * hc[i] * v1[i] * grad_v[i, 1]  \
+                         - rho[i] * h_psi * u[i] * grad_v[i, 0]  \
+                         - rho[i] * h_psi * v[i] * grad_v[i, 1]  \
+                         - grad_p[i, 1] * h_psi  \
+                         - 0.5 * (self.R / self.C) * rho[i] * v[i]  * ( \
+                         + (1. + m) * f_r[i]  / U_r[i] * ( u[i] * u1[i] + (v[i] - self.v_r) * v1[i] ) \
+                         + (1. + m) * f_s[i]  / U_s[i] * ( u[i] * u1[i] + v[i] * v1[i] ) \
+                         + U_s[i] * m * f_s[i] * h_psi /  hc[i] \
+                         + U_r[i] * m * f_r[i] * h_psi / hc[i] ) \
+                         - 1j * self.sigma * rho[i] * hc[i] * v1[i] ) * cell[i,2]
+               
+                # # Note that param['v_r'] = param['R'] * param['Omega'] / param['u_s']           
+                   
+                self.bv1[i] +=  0.5 * (self.R * self.v_r) / (self.C) * rho[i] * cell[i, 2] * ( \
+                         + (1. + m) * f_r[i] / U_r[i] * ( u[i] * u1[i] + (v[i] - self.v_r) * v1[i]) \
+                         + m * U_r[i] * f_r[i] * h_psi / hc[i] )                           
+                         
+            elif param['friction'] == 'moody':
+                pass
+     
+        self.bu1 += (1. - self.relax_uv) * self.apu * self.u1  # relaxation has been applied to ap, i.e. ap = ap / relax
+        self.bv1 += (1. - self.relax_uv) * self.apu * self.v1
+
     def _solve_uv_explicit(self):
         '''
         explicit solution of zeroth-order momentum equations
@@ -621,11 +787,11 @@ class seal(mesh.mesh):
         
         #self.bu = self.bu * 0.0
         #self.bv = self.bv * 0.0
-        self.apu = self.apu * 0.0
+        #self.apu = self.apu * 0.0
         
         bu = np.zeros(self.Nc, dtype=np.float64)
         bv = np.zeros(self.Nc, dtype=np.float64)
-        #apu = np.zeros(self.Nc, dtype=np.float64)
+        ap = np.zeros(self.Nc, dtype=np.float64)
         
         u = self.u
         v = self.v
@@ -640,8 +806,8 @@ class seal(mesh.mesh):
             fluxp = phi[i] * ((1. - self.gamma) * 0.5 * (np.sign(phi[i]) + 1.) + self.gamma * gf[i])
             fluxnb = phi[i] * ((-1. + self.gamma) * 0.5 * (np.sign(phi[i]) - 1.) + self.gamma * (1. - gf[i]))
             # 
-            self.apu[p] += fluxp
-            self.apu[nb] += -fluxnb
+            ap[p] += fluxp
+            ap[nb] += -fluxnb
 
             bu[p] += -fluxnb * u[nb]
             bu[nb] += fluxp * u[p]
@@ -661,14 +827,14 @@ class seal(mesh.mesh):
             if self.bc_type[idx] == 2:  # outflow
                 #bu[p] +=  - phi[i] * ubc[idx]  # convective flux
                 #bv[p] +=  - phi[i] * vbc[idx] #ubc[idx]  # convective flux
-                self.apu[p] +=  phi[i]
+                ap[p] +=  phi[i]
             if self.bc_type[idx] == 0:  # solid wall
                 fluxp = 1. / self.Re * hf[i] * (div(sf[i, 0], cn[i, 0]) + div(sf[i, 1], cn[i, 1]))
                 # owner
                 #A[p, p] += fluxp
                 bu[p] += fluxp * self.ubc[idx]
                 bv[p] += fluxp * self.vbc[idx]
-                self.apu[p] += fluxp
+                ap[p] += fluxp
 
             if self.bc_type[idx] == 4:  # cyclic 2
                 nb = cyclic[idx2, 2]
@@ -676,8 +842,8 @@ class seal(mesh.mesh):
                 fluxp = phi[i] * ((1. - self.gamma) * 0.5 * (np.sign(phi[i]) + 1.) + self.gamma * gf[i])
                 fluxnb = phi[i] * ((-1. + self.gamma) * 0.5 * (np.sign(phi[i]) - 1.) + self.gamma * (1. - gf[i]))
                 #
-                self.apu[p] += fluxp
-                self.apu[nb] += -fluxnb
+                ap[p] += fluxp
+                ap[nb] += -fluxnb
 
                 bu[p] += - fluxnb * u[nb]
                 bu[nb] +=  fluxp * u[p]
@@ -695,16 +861,19 @@ class seal(mesh.mesh):
             bv[i] += - hc[i] * self.grad_p[i, 1] * self.cell[i, 2]  # pressure
             # friction factor formulation
 
-            flux = 0.5 * (self.R / self.C) * self.rho[i] * ( U_s[i] * f_s[i] + U_r[i] * f_r[i] ) * self.cell[i, 2] 
+            flux = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_s[i] * f_s[i] + U_r[i] * f_r[i] ) * self.cell[i, 2] 
             #blend = 1.0 # 1.75
-            self.apu[i] += self.uv_src_blend * flux  # implicit portion
-            bu[i] += - (1. - self.uv_src_blend) * flux * u[i]  # explicit portion
-            bv[i] += - (1. - self.uv_src_blend) * flux * v[i]
+            ap[i] += - self.uv_src_blend * flux  # implicit portion
+            bu[i] += (1. - self.uv_src_blend) * flux * u[i]  # explicit portion
+            bv[i] += (1. - self.uv_src_blend) * flux * v[i]
             bv[i] += 0.5 * (self.R / self.C) * self.rho[i] * (U_r[i] * f_r[i]) * self.v_r * self.cell[i, 2] 
 
-        self.u_star = bu / self.apu
-        self.v_star = bv / self.apu
+        #self.u_star = bu / self.apu
+        #self.v_star = bv / self.apu
+        self.u_star = bu / ap
+        self.v_star = bv / ap
         #us = bp/ap + b/ap  + (1. - relax_u) * (ap) * u
+        return self.u_star, self.v_star
 
     
     def _cc_to_int_faces(self, valf, val):
@@ -898,6 +1067,59 @@ class seal(mesh.mesh):
                 #
                 idx2 += 1
             idx += 1
+            
+    def _setup_first_p(self):
+        '''
+        coefficient matrix and source term for zeroth order pressure correction
+        '''
+        owner = self.owner
+        neighbor = self.neighbor
+        cyclic = self.cyclic
+        cell = self.cell
+        
+        phi1 = self.phi1
+        self.bp1 = self.bp1 * 0.0
+        
+        # interior
+        for i in range(self.Nfint):
+            p = owner[i]
+            nb = neighbor[i]
+            self.bp1[p] += - phi1[i] 
+            self.bp1[nb] += phi1[i] 
+
+        idx = 0
+        idx2 = 0
+        for i in range(self.Nfstart[0], self.Nf):
+            p = owner[i]
+            if self.bc_type[idx] == 1:  # inflow
+                self.bp1[p] += - phi1[i] 
+            if self.bc_type[idx] == 2:  # outflow, specified pressure
+                self.bp1[p] += - phi1[i] 
+            if self.bc_type[idx] == 0:  # solid wall, mass flux and mass flux corrections are zero
+                pass
+            if self.bc_type[idx] == 4:  # cyclic 2
+                nb = cyclic[idx2, 2]
+                #
+                self.bp1[p] += -phi1[i]
+                self.bp1[nb] += phi1[i]
+                #
+                idx2 += 1
+            idx += 1    
+            
+        for i in range(self.Nc):
+            if self.pert_dir == 'X':
+                h_psi = np.cos(cell[i,1])
+                h_psi_grad = - np.sin(cell[i,1]) 
+            if self.pert_dir == 'Y':
+                h_psi = np.sin(cell[i,1])
+                h_psi_grad = np.cos(cell[i,1]) 
+            #
+            self.bp1[i] += (- self.rho[i] * h_psi * self.grad_u[i,0]  \
+                    - self.rho[i] * h_psi * self.grad_v[i,1]  \
+                    - self.rho[i] * self.v[i] * h_psi_grad  \
+                    - 1j * self.sigma * self.rho[i] * h_psi ) * cell[i,2]  
+            #self.bp1[i] = - self.bp1[i]         
+            
 
     def _correct_phi(self, phi, rho, rhobc, p_corr, ppbc):
         '''
