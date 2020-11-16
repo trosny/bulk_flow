@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
  test01 of seal class
+ baseline test of zeroth-order solution
+   - coarse grid
+   - "standard" relaxation factors
 """
 import sys
 sys.path.append("../../src")

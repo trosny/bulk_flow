@@ -21,7 +21,7 @@ friction : 'blasius' #
 rotor_roughness : 0.0     # rotor relative roughness [-]
 stator_roughness : 0.0    # stator relative roughness [-]
 # numerical
-gamma : 0.1               # blending coefficient for convective terms
+gamma : 0.0               # blending coefficient for convective terms
                           # 1 : linear, 0 : first-order upwind
 Nx : 10                   # number of cells in axial direction
 Ny : 20                   # number of cells in circ. direction
@@ -31,14 +31,14 @@ relax_p : 0.3             # relaxation of zeroth-order pressure
 u_tol : 1.0e-7            # tolerance threshold on axial momentum
 v_tol : 1.0e-7            # tolerance threshold on circ. momentum
 m_tol : 1.0e-7            # tolerance threshold on continuity / pressure corr.
-uv_src_method : 0         # treatment of friction source terms
+uv_src_method : 1         # treatment of friction source terms
                           # 0 : simple blending
                           # 1 : linearized 
 uv_src_blend : 1.0        # blending coefficient for momentum friction terms
                           # 1 : fully implicit, 0 : fully explicit
 max_it : 1000             # maximum iterations for zeroth-order solution
 max_it_pert : 1000        # inactive
-nCorrectors : 2           # number of explicit corrections, 2-3 good choice
+nCorrectors : 0           # number of explicit corrections, 2-3 good choice
 # other
 whirl_f : 50.0            # rotor whirling frequency [rad/s]
 read_restart : False      # inactive
@@ -47,4 +47,4 @@ print_residuals : True    # inactive, True : print residuals
 print_output : True       # inactive
 pert_dir : 'X'            # inactive, pertubation direction for 1-st order solution
                           # 'X' or 'Y'
-debug_seal : False        # debug flag
+debug_seal : True         # debug flag
