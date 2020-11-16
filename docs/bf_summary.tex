@@ -1,0 +1,812 @@
+% Solution of bulk flow equations
+\documentclass[12pt,letterpaper]{article} 
+\usepackage[top=1in, bottom=1in,left=1in,right=1in]{geometry} 
+%\usepackage[belowskip=-12pt,aboveskip=12pt]{caption}
+
+\usepackage{subcaption}
+\usepackage{amsmath,graphicx,float}
+\usepackage{breqn} % use for auto-line breaking of long equations
+%\usepackage{setspace}
+%\usepackage{hyperref,url}
+\usepackage{xcolor}
+
+\DeclareMathOperator{\sgn}{sgn}
+\newcommand*{\nd}[1]{\tilde{#1}} % non-dimensional number
+\newcommand*{\scale}[1]{{#1}_*} % scale factor in non-dimensionalization
+
+%\setlength{\parindent}{0pt}
+
+\title{}
+\author{}
+
+
+\begin{document}
+
+
+\section{Bulk-flow equations}
+
+This document contains a summary of the bulk-flow equations for the
+analysis of high-Reynolds number thin films. The conservation equations
+for mass, linear momentum, and energy are included. Also included
+are the perturbed forms of the bulk-flow equations considering
+incompressible flow, transverse rotor perturbations (only),
+and friction factors of Blasius form.
+
+\begin{itemize}
+ \item $x$ : axial direction
+ \item $y$ : circumferential direction
+\end{itemize}
+
+\subsection{Dimensional forms}
+
+\begin{dmath}
+\frac{\partial \left( \rho h \right)}{\partial t} +
+\frac{\partial \left( \rho h v_x \right)}{\partial x} +
+\frac{\partial \left( \rho h v_y \right)}{\partial y}
+ = 0
+\end{dmath}
+
+
+\begin{dmath}
+\frac{\partial \left( \rho h v_x \right)}{\partial t} +
+\frac{\partial \left( \rho h i_{xx}\right)}{\partial x} +
+\frac{\partial \left( \rho h i_{xy}\right)}{\partial y} =
+- \frac{\partial p }{\partial x } h + 
+\tau_{xz,2} - \tau_{xz,1}
+\end{dmath}
+
+\begin{dmath}
+\frac{\partial \left( \rho h v_y \right)}{\partial t} +
+\frac{\partial \left( \rho h i_{yx}\right)}{\partial x} +
+\frac{\partial \left( \rho h i_{yy}\right)}{\partial y} =
+- \frac{\partial p }{\partial y } h + 
+\tau_{yz,2} - \tau_{yz,1}
+\end{dmath}
+
+\begin{dmath}
+c_p \left(
+\frac{\partial \left( \rho h T \right) }{\partial t}
++ 
+\frac{\partial \left( \rho h v_x T \right) }{\partial x}
++ 
+\frac{\partial \left( \rho h v_y T \right) }{\partial y}
+\right) = 
+- \left( q_z \right)_{h_1}^{h_2} -
+ \left(
+\tau_{zx}v_x +
+\tau_{zy}v_y
+\right)_{h_1}^{h_2} +
+\alpha_{\hat{v}} T h
+\left(
+\frac{\partial  p }{\partial t} +
+v_x
+\frac{\partial  p }{\partial x} +
+v_y 
+\frac{\partial  p }{\partial y}
+\right)
+\end{dmath}
+
+where
+
+\begin{equation}
+h = \int_{h_1(x,y,t)}^{h_2(x,y,t)} \, dz = h_2 - h_1
+\end{equation}
+
+\begin{equation}
+v_x = \frac{1}{h} \int_{h_1(x,y,t)}^{h_2(x,y,t)} v_x \, dz
+\end{equation}
+
+\begin{equation}
+v_y = \frac{1}{h} \int_{h_1(x,y,t)}^{h_2(x,y,t)} v_y \, dz
+\end{equation}
+
+$\alpha_{\hat{v}}$ is a thermal volumetric expansion coefficient.
+
+\begin{equation}
+ \alpha_{\hat{v}} = \frac{1}{\hat{v}}
+\left( 
+\frac{\partial \hat{v}}{\partial T}
+\right)_p
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Convective integrals}
+
+The convective inertia integrals may be approximated in different ways depending
+on the nature of the flow.  In the case of fully-developed, turbulent
+flow, the velocity profiles are nearly flat and the convective inertia
+integrals can be approximated as
+
+\begin{equation}
+i_{xx} = \frac{1}{h} \int_{h_1(x,y,t)}^{h_2(x,y,t)} v_x v_x \, dz
+\approx v_x^2
+\end{equation}
+
+\begin{equation}
+i_{xy} = \frac{1}{h} \int_{h_1(x,y,t)}^{h_2(x,y,t)} v_x v_y \, dz
+\approx v_x v_y
+\end{equation}
+
+\begin{equation}
+i_{yx} = I_{xy} = \frac{1}{h} \int_{h_1(x,y,t)}^{h_2(x,y,t)} v_y v_x \, dz
+\approx v_x v_y
+\end{equation}
+
+\begin{equation}
+i_{yy} = \frac{1}{h} \int_{h_1(x,y,t)}^{h_2(x,y,t)} v_y v_y \, dz
+\approx v_y^2
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Shear stresses}
+
+dimensional shear stress of the form
+
+\begin{equation}
+\tau_{xz,2} - \tau_{xz,1} = \left. \tau_{xz} \right|_1^2 = \left. \tau_{xz} \right|_0^h = -0.5 \rho \left( f_r v_r + f_s v_s \right) v_x
+\end{equation}
+
+where
+
+\begin{equation} 
+v_s = \sqrt{v_x^2 + v_y^2}
+\end{equation}
+
+\begin{equation} 
+v_r =  \sqrt{v_x^2 + \left( v_y - R \Omega \right)^2 }
+\end{equation}
+
+\begin{equation}
+\tau_{yz,2} - \tau_{yz,1} = \left. \tau_{yz} \right|_1^2 = 
+\left. \tau_{yz} \right|_0^h = 
+-0.5 \rho \left( 
+f_r v_r + f_s v_s \right) v_y + 
+0.5 \rho f_r v_r R\Omega
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Non-dimensionalization}
+
+Non-dimensional forms of the bulk-flow equations assuming the convective
+integral approximations provided in the previous section.
+
+\begin{align*}
+\nd{h} &= \frac{h}{C}\\
+\nd{x} &= \frac{x}{R}\\
+\nd{y} &= \frac{y}{R}\\
+\nd{t} &= \omega t\\
+\nd{\rho} &= \frac{\rho}{\scale{\rho}}\\
+\nd{\mu} &= \frac{\mu}{\scale{\mu}}\\
+\nd{v}_x &= \frac{v_x}{\scale{u}}\\
+\nd{v}_y &= \frac{v_y}{\scale{u}}\\
+\nd{p} &= \frac{p}{\scale{\rho} \scale{u}^2} \\
+\sigma = &= \frac{ \omega R}{\scale{u}}
+\end{align*}
+
+Note that $y \in 0,2 \pi R$, so following the non-dimensionalization
+above, $\nd{y} = \theta \in 0,2 \pi$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Dimensionless form}
+
+\begin{dmath*}
+\sigma \frac{\partial \left( \nd{\rho} \nd{h} \right)}{\partial \nd{t}} +
+\frac{\partial \left( \nd{\rho} \nd{h} \nd{v}_x \right)}{\partial \nd{x}} +
+\frac{\partial \left( \nd{\rho} \nd{h} \nd{v}_y \right)}{\partial \nd{y}}
+ = 0
+\end{dmath*}
+
+
+\begin{dmath*}
+\sigma \frac{\partial \left( \nd{\rho} \nd{h} \nd{v}_x \right)}{\partial \nd{t}} +
+\frac{\partial \left( \nd{\rho} \nd{h} \nd{v}_x^2 \right)}{\partial \nd{x}} +
+\frac{\partial \left( \nd{\rho} \nd{h} \nd{v}_x \nd{v}_y \right)}{\partial \nd{y}} =
+- \frac{\partial \nd{p} }{\partial \nd{x} } \nd{h} - 
+0.5 \frac{R}{C} \nd{\rho} \left( f_r \nd{v}_r + f_s \nd{v}_s \right) \nd{v}_x
+\end{dmath*}
+
+
+\begin{dmath*}
+\sigma \frac{\partial \left( \nd{\rho} \nd{h} \nd{v}_y \right)}{\partial \nd{t}} +
+\frac{\partial \left( \nd{\rho} \nd{h} \nd{v}_x \nd{v}_y \right)}{\partial \nd{x}} +
+\frac{\partial \left( \nd{\rho} \nd{h} \nd{v}_y^2 \right)}{\partial \nd{y}} =
+- \frac{\partial \nd{p} }{\partial \nd{y} } \nd{h} - 
+0.5 \frac{R}{C} \nd{\rho} \left( f_r \nd{v}_r + f_s \nd{v}_s \right) \nd{v}_y +
+0.5 \frac{R}{C} \nd{\rho} f_r \nd{v}_r \frac{ \Omega R}{u_*}
+\end{dmath*}
+
+
+Dropping the overbars for simplicity...
+
+
+\begin{dmath}
+\sigma \frac{\partial \left( \rho h \right)}{\partial t} +
+\frac{\partial \left( \rho h v_x \right)}{\partial x} +
+\frac{\partial \left( \rho h v_y \right)}{\partial y}
+ = 0
+\end{dmath}
+
+
+
+\begin{dmath}
+\sigma \frac{\partial \left( \rho h v_x \right)}{\partial t} +
+\frac{\partial \left( \rho h v_x^2 \right)}{\partial x} +
+\frac{\partial \left( \rho h v_x v_y \right)}{\partial y} =
+- \frac{\partial p }{\partial x } h - 
+0.5 \frac{R}{C} \rho \left( f_r v_r + f_s v_s \right) v_x
+\end{dmath}
+
+
+\begin{dmath}
+\sigma \frac{\partial \left( \rho h v_y \right)}{\partial t} +
+\frac{\partial \left( \rho h v_x v_y \right)}{\partial x} +
+\frac{\partial \left( \rho h v_y^2 \right)}{\partial y} =
+- \frac{\partial p }{\partial y } h - 
+0.5 \frac{R}{C} \rho \left( f_r v_r + f_s v_s \right) v_y +
+0.5 \frac{R^2 \Omega}{C u_*} \rho f_r v_r
+\end{dmath}
+
+Non-dimensionlize the rotor and stator velocities as well
+
+\begin{equation} \label{eq:vel:stator}
+v_s = \sqrt{v_x ^2 + v_y^2}
+\end{equation}
+
+\begin{equation} \label{eq:vel:rotor}
+v_r =  \sqrt{v_x^2 + \left( v_y - v_t \right)^2 }
+\end{equation}
+%
+where $v_t= R \Omega / u_*$ is the 
+dimensionless rotor surface velocity.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Perturbed equations}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Perturbations}
+
+The perturbed form of the bulk-flow equations are derived by
+introducing the following first-order Taylor-series perturbations
+into the film thickness and the dependent variables (shown
+here for incompressible flow):
+
+\begin{equation*}
+h =   h_0 +    \epsilon_{\psi} h_{\psi}    e^{i \omega t} = 
+h_0 + \epsilon_{\psi} h_{\psi}    e^{i \overline{t}}
+\end{equation*}
+%
+But recall that the overline $\overline{*}$ was dropped from the
+non-dimensional form of the equations for ease of notation.
+And so, it is understood that the perturbations below of time
+$t$ actually represent dimensionless time $\omega t$.
+
+\begin{align*}
+h &=   h_0 +    \epsilon_{\psi} h_{\psi}    e^{i t} \\
+v_x &= v_{x0} + \epsilon_{\psi} v_{x,\psi} e^{i  t} \\
+v_y &= v_{y0} + \epsilon_{\psi} v_{y,\psi} e^{i t} \\
+p &=   p_0 +    \epsilon_{\psi} p_{\psi}    e^{i t} \\
+v_r &= v_{r0} + \epsilon_{\psi} v_{r,\psi} e^{i t} \\
+v_s &= v_{s0} + \epsilon_{\psi} v_{s,\psi} e^{i t} \\
+f_r &= f_{r0} + \epsilon_{\psi} f_{r,\psi} e^{i t} \\
+f_s &= f_{s0} + \epsilon_{\psi} f_{s,\psi} e^{i t} \\
+\end{align*}
+%
+where $\psi \in X,Y$. Important: The capital Cartesian coordinates
+$X,Y$ correspond to the global coordinate system describing
+the rotor motions while $x,y$ describe the unwrapped film thickness.
+Note that separately perturbing the rotor
+and stator velocities and friction factors at this
+stage results in the flexible
+set of the perturbation equations. Different
+expressions for
+$f_{i0}$ and its derivative $f_{i \psi}$ (where
+$i=r,s$) can be inserted for
+the friction factor or friction factor derivative of
+interest.
+
+Dimensionless film thickness function at static equilibrium
+postion with no misalignment
+
+\begin{equation} \label{eq:film:zeroth}
+h_0(y) = 1.0 + \varepsilon_{X0} \cos{y} + \varepsilon_{Y0} \sin{y}
+\end{equation}
+%
+Film thickness function including perturbation from static
+equilibrium position
+
+\begin{equation} \label{eq:film:pert}
+h = h_0 + \epsilon_{\psi} h_{\psi}  e^{i \omega t} =
+  h_0 + \left(
+ \epsilon_{X} \frac{\partial h_0}{\partial \varepsilon_{X0}} +
+ \epsilon_{Y} \frac{\partial h_0}{\partial \varepsilon_{Y0}}
+ \right) e^{i \omega t}
+\end{equation}
+
+In the perturbed equations that follow, the appropriate
+forms for the X- and Y-directions are derived by replacing the partial
+derivatives with
+$h_X = \cos{y}$ or $h_Y = \sin{y}$ which follow from taking the
+partial derivatives of the film thickness function
+in Equation \ref{eq:film:zeroth}.
+
+\subsection{Rotor and stator velocity derivatives}
+
+\begin{equation}
+v_{i,\psi} = 
+\left. \frac{\partial v_i}{\partial v_{x}} \right|_{0} v_{x,\psi} +
+\left. \frac{\partial v_i}{\partial v_{y}} \right|_{0} v_{y,\psi}
+\end{equation}
+
+where $i=r,s$
+
+\subsubsection{Stator}
+
+\begin{equation}
+v_{s,\psi} = 
+\left. \frac{\partial v_s}{\partial v_{x}} \right|_{0} v_{x,\psi} +
+\left. \frac{\partial v_s}{\partial v_{y}} \right|_{0} v_{y,\psi}
+\end{equation}
+
+Evaluating the partial derivatives considering the stator velocity
+given by Equation \ref{eq:vel:stator}
+
+\begin{equation} \label{eq:vel_deriv:stator}
+v_{s,\psi} = 
+\frac{1}{v_{s0}} \left( v_{x0} v_{x,\psi}
++ v_{y0} v_{y,\psi} \right)
+\end{equation}
+
+\subsubsection{Rotor}
+
+\begin{equation}
+v_{r,\psi} = 
+\left. \frac{\partial v_r}{\partial v_{x}} \right|_{0} v_{x,\psi} +
+\left. \frac{\partial v_r}{\partial v_{y}} \right|_{0} v_{y,\psi}
+\end{equation}
+
+Evaluating the partial derivatives considering the rotor velocity
+given by Equation \ref{eq:vel:rotor}
+
+\begin{equation} \label{eq:vel_deriv:rotor}
+v_{r,\psi} = 
+\frac{1}{v_{r0}} \left[ v_{x0} v_{x,\psi}
++ \left( v_{y0} - R \Omega \right) v_{y,\psi} \right]
+\end{equation}
+
+\subsection{Friction factor derivatives}
+
+\begin{equation}
+f_{i,\psi} = 
+\left. \frac{\partial f_i}{\partial v_i} \right|_{0} v_{i,\psi} +
+\left. \frac{\partial f_i}{\partial h} \right|_{0} h_{\psi}
+\end{equation}
+
+where $i=r,s$
+
+\subsubsection{Blasius}
+
+\begin{equation}
+ f_i = n_i Re_i ^ {m_i} = n_i \left( \frac{\rho_* v_i 2 h }{\mu_*}\right) ^ {m_i}
+\end{equation}
+
+\begin{equation}
+f_{i,\psi} = 
+\frac{m_i}{v_{i0}} f_{i0} v_{i,\psi} +
+\frac{m_i}{h_{0}} f_{i0} h_{\psi}
+\end{equation}
+
+Stator:
+
+\begin{equation}
+f_{s,\psi} = 
+\frac{m_s}{v_{s0}^2} f_{s0} \left(
+  v_{x0} v_{x,\psi}
++ v_{y0} v_{y,\psi}
+\right)
+ +
+\frac{m_s}{h_{0}} f_{s0} h_{\psi}
+\end{equation}
+
+Rotor:
+
+\begin{equation}
+f_{r,\psi} = 
+\frac{m_r}{v_{r0}^2} f_{r0} \left[
+  v_{x0} v_{x,\psi}
++ \left( v_{y0} - R \Omega \right) v_{y,\psi}
+\right]
+ +
+\frac{m_r}{h_{0}} f_{r0} h_{\psi}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Zeroth-order}
+
+\subsubsection{Continuity}
+
+\begin{dmath}
+\frac{\partial \left( \rho_0 h_0 v_{x0} \right)}{\partial x} +
+\frac{\partial \left( \rho_0 h_0 v_{y0} \right)}{\partial y}
+ = 0
+\end{dmath}
+
+\subsubsection{Axial momentum}
+
+\begin{dmath}
+\frac{\partial \left( \rho_0 h_0 v_{x0}^2 \right)}{\partial x} +
+\frac{\partial \left( \rho_0 h_0 v_{x0} v_{y0} \right)}{\partial y} =
+- \frac{\partial p_0 }{\partial x } h_0 - 
+0.5 \frac{R}{C} \rho_0 \left( f_{r0} v_{r0} + f_{s0} v_{s0} \right) v_{x0}
+\end{dmath}
+
+\subsubsection{Circumferential momentum}
+
+\begin{dmath}
+\frac{\partial \left( \rho h_0 v_{x0} v_{y0} \right)}{\partial x} +
+\frac{\partial \left( \rho h_0 v_{y0}^2 \right)}{\partial y} =
+- \frac{\partial p_0 }{\partial y } h_0 - 
+0.5 \frac{R}{C} \rho \left( f_{r0} v_{r0} + f_{s0} v_{s0} \right) v_{y0} +
+0.5 \frac{R^2 \Omega}{C u_*} \rho f_{r0} v_{r0}
+\end{dmath}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{First-order}
+
+\subsubsection{Continuity}
+
+\begin{dmath}
+  \frac{\partial \left( \rho_0 h_0 v_{x,\psi} \right)}{\partial x}
++ \frac{\partial \left( \rho_0 h_0 v_{y,\psi} \right)}{\partial y}
+= 
+- \frac{\partial \left( \rho_0 h_{\psi} v_{x0} \right)}{\partial x}
+- \frac{\partial \left( \rho_0 h_{\psi} v_{y0} \right)}{\partial y}
+- i \sigma \rho_0 h_{\psi}
+\end{dmath}
+%
+$h_{\psi} \neq f(x)$ so... 
+
+\begin{dmath}
+  \frac{\partial \left( \rho_0 h_0 v_{x,X} \right)}{\partial x}
++ \frac{\partial \left( \rho_0 h_0 v_{y,X} \right)}{\partial y}
+= 
+- h_{\psi} \frac{\partial \left( \rho_0  v_{x0} \right)}{\partial x}
+- h_{\psi} \frac{\partial \left( \rho_0  v_{y0} \right)}{\partial y}
+- \rho_0 v_{y0} \frac{\partial \left( h_{\psi} \right)}{\partial y}
+- i \sigma \rho_0 h_{\psi}
+\end{dmath}
+
+
+\subsubsection{Axial momentum}
+
+\begin{dmath*}
+ \frac{\partial \left( \rho_0 h_0 v_{x0} v_{x,\psi} \right)}{\partial x}  
++ \frac{\partial \left( \rho_0 h_0 v_{y0} v_{x,\psi} \right)}{\partial y}
++ \left[
+ \frac{\partial \left( \rho_0 h_0 v_{x0} v_{x,\psi} \right)}{\partial x}  
++ \frac{\partial \left( \rho_0 h_0 v_{y,\psi} v_{x0} \right)}{\partial y}
+\right]    
+= 
+- \frac{\partial p_{\psi} }{\partial x } h_0 
+- 0.5 \frac{R}{C} \rho_0 \left(
+  f_{r0} v_{r0} + f_{s0} v_{s0}
+\right) v_{x,\psi} 
+- \left[ \frac{\partial \left( \rho_0 h_{\psi} v_{x0}^2 \right)}{\partial x}
++ \frac{\partial \left( \rho_0 h_{\psi} v_{x0} v_{y0} \right)}{\partial y} \right] 
+- \frac{\partial p_0 }{\partial x } h_{\psi}
+- 0.5 \frac{R}{C} \rho_0 v_{x0} \left(
+  f_{r0} v_{r,\psi} 
++ f_{s0} v_{s,\psi}
++ f_{s,\psi} v_{s0}
++ f_{r,\psi} v_{r0}   
+\right)
+- i \sigma \rho_0 h_0 v_{x,\psi}
+- \left[ i \sigma \rho_0 h_{\psi} v_{x0} \right]
+\end{dmath*}
+
+Make use of first-order continuity
+equation to simplify the terms in brackets. Notably, derivatives
+of the dependent variables can be eliminated.
+
+\begin{dmath*}
+ \frac{\partial \left( \rho_0 h_0 v_{x0} v_{x,\psi} \right)}{\partial x}  
++ \frac{\partial \left( \rho_0 h_0 v_{y0} v_{x,\psi} \right)}{\partial y}
++ \textcolor{magenta}{
+ \rho_0 h_0 v_{x,\psi} \frac{\partial v_{x0}}{\partial x}  
++ \rho_0 h_0 v_{y,\psi} \frac{\partial v_{x0}}{\partial y}
+ }   
+= 
+- \frac{\partial p_{\psi} }{\partial x } h_0 
+- 0.5 \frac{R}{C} \rho_0 \left(
+  f_{r0} v_{r0} + f_{s0} v_{s0}
+\right) v_{x,\psi} 
+- \rho_0 h_{\psi} v_{x0} \frac{\partial v_{x0}}{ \partial x}
+- \rho_0 h_{\psi} v_{y0} \frac{\partial v_{x0}}{ \partial y}
+- \frac{\partial p_0 }{\partial x } h_{\psi}
+- 0.5 \frac{R}{C} \rho_0 v_{x0} \left(
+  f_{r0} v_{r,\psi}
++ f_{s0} v_{s,\psi}  
++ f_{s,\psi} v_{s0}
++ f_{r,\psi} v_{r0}   
+\right)
+- \textcolor{cyan}{i \sigma \rho_0 h_0 v_{x,\psi}}
+\end{dmath*}
+
+If the \textcolor{magenta}{magenta} and \textcolor{cyan}{cyan}
+terms are treated explicitly, then the coefficient matrix from the zeroth-order problem can
+be re-used directly. Note that it is assumed that that 
+the friction factor terms are treated implicitly within
+the zeroth-order problem. Additionally, implicit treatment of the
+latter \textcolor{magenta}{magenta} term would require coupled
+solution of the first-order momentum equations
+
+\begin{dmath*}
+ \frac{\partial \left( \rho_0 h_0 v_{x0} v_{x,\psi} \right)}{\partial x}  
++ \frac{\partial \left( \rho_0 h_0 v_{y0} v_{x,\psi} \right)}{\partial y}
++ 0.5 \frac{R}{C} \rho_0 \left(
+  f_{r0} v_{r0} + f_{s0} v_{s0}
+\right) v_{x,\psi}  
+= 
+ S_{v_{x,\phi}}
+\end{dmath*}
+
+where
+
+\begin{dmath*}
+S_{v_{x,\phi}} = 
+- \frac{\partial p_{\psi} }{\partial x } h_0 
+ \textcolor{magenta}{
+- \rho_0 h_0 v_{x,\psi} \frac{\partial v_{x0}}{\partial x}  
+- \rho_0 h_0 v_{y,\psi} \frac{\partial v_{x0}}{\partial y}
+ }   
+- \rho_0 h_{\psi} v_{x0} \frac{\partial v_{x0}}{ \partial x}
+- \rho_0 h_{\psi} v_{y0} \frac{\partial v_{x0}}{ \partial y}
+- \frac{\partial p_0 }{\partial x } h_{\psi}
+- 0.5 \frac{R}{C} \rho_0 v_{x0} \left(
+  f_{r0} v_{r,\psi} 
++ f_{s0} v_{s,\psi}
++ f_{s,\psi} v_{s0} 
++ f_{r,\psi} v_{r0}   
+\right)
+- \textcolor{cyan}{i \sigma \rho_0 h_0 v_{x,\psi}}
+\end{dmath*}
+
+Substitute expressions for partial derivatives of rotor and
+stator velocities as well as partial derivatives of rotor
+and stator friction factors into the source term. Also
+substitute friction factors assuming Blasius form.
+
+\begin{dmath*}
+S_{v_{x,\phi}} = 
+- \frac{\partial p_{\psi} }{\partial x } h_0 
+  \textcolor{magenta}{
+- \rho_0 h_0 v_{x,\psi} \frac{\partial v_{x0}}{\partial x}  
+- \rho_0 h_0 v_{y,\psi} \frac{\partial v_{x0}}{\partial y}
+ }   
+- \rho_0 h_{\psi} v_{x0} \frac{\partial v_{x0}}{ \partial x}
+- \rho_0 h_{\psi} v_{y0} \frac{\partial v_{x0}}{ \partial y}
+- \frac{\partial p_0 }{\partial x } h_{\psi}
+- 0.5 \frac{R}{C} \rho_0 v_{x0}\left\{   
+ \frac{f_{r0} }{v_{r0}} \left[  v_{x0}  v_{x,\psi}
++ \left( v_{y0} - v_t \right) v_{y,\psi} \right]
+  %
++ \frac{f_{s0} }{v_{s0}} \left( v_{x0} v_{x,\psi}
++ v_{y0} v_{y,\psi} \right)
+%
++ \frac{ m_s}{v_{s0}} f_{s0} \left(
+  v_{x0} v_{x,\psi}
++ v_{y0} v_{y,\psi}
+\right)
+ +
+\frac{ v_{s0} m_s}{h_{0}} f_{s0} h_{\psi}
+%
++ \frac{ m_r}{v_{r0}} f_{r0} \left[
+  v_{x0} v_{x,\psi}
++ \left( v_{y0} - v_t \right) v_{y,\psi}
+\right]
+ +
+\frac{v_{r0} m_r}{h_{0}} f_{r0} h_{\psi}
+\right\}
+- \textcolor{cyan}{i \sigma \rho_0 h_0 v_{x,\psi}}
+\end{dmath*}
+
+Simplifying...
+
+\begin{dmath*}
+S_{v_{x,\phi}} = 
+- \frac{\partial p_{\psi} }{\partial x } h_0 
+  \textcolor{magenta}{
+- \rho_0 h_0 v_{x,\psi} \frac{\partial v_{x0}}{\partial x}  
+- \rho_0 h_0 v_{y,\psi} \frac{\partial v_{x0}}{\partial y}
+ }   
+- \rho_0 h_{\psi} v_{x0} \frac{\partial v_{x0}}{ \partial x}
+- \rho_0 h_{\psi} v_{y0} \frac{\partial v_{x0}}{ \partial y}
+- \frac{\partial p_0 }{\partial x } h_{\psi}
+- 0.5 \frac{R}{C} \rho_0 v_{x0} \left\{   
+\frac{\left( 1 + m_r \right) f_{r0} }{v_{r0}} \left[  v_{x0}  v_{x,\psi}
++ \left( v_{y0} - v_t \right) v_{y,\psi} \right]
+  %
+\frac{\left( 1 + m_s \right) f_{s0} }{v_{s0}} \left( v_{x0} v_{x,\psi}
++ v_{y0} v_{y,\psi} \right)
+%
+ +
+\frac{ v_{s0} m_s}{h_{0}} f_{s0} h_{\psi}
+%
+ +
+\frac{v_{r0} m_r}{h_{0}} f_{r0} h_{\psi}
+\right\}
+- \textcolor{cyan}{i \sigma \rho_0 h_0 v_{x,\psi}}
+\end{dmath*}
+
+
+\subsubsection{Circumferential momentum}
+
+\begin{dmath*}
+ \frac{\partial \left( \rho_0 h_0 v_{x0} v_{y,\psi} \right)}{\partial x}  
++ \frac{\partial \left( \rho_0 h_0 v_{y0} v_{y,\psi} \right)}{\partial y}
++ \left[
+ \frac{\partial \left( \rho_0 h_0 v_{y0} v_{x,\psi} \right)}{\partial x}  
++ \frac{\partial \left( \rho_0 h_0 v_{y,\psi} v_{y0} \right)}{\partial y}
+\right]    
+= 
+- \frac{\partial p_{\psi} }{\partial y } h_0 
+- 0.5 \frac{R}{C} \rho_0 \left(
+  f_{r0} v_{r0} + f_{s0} v_{s0}
+\right) v_{y,\psi} 
+- \left[ \frac{\partial \left( \rho_0 h_{\psi} v_{x0} v_{y0} \right)}{\partial x}
++ \frac{\partial \left( \rho_0 h_{\psi} v_{y0}^2 \right)}{\partial y} \right] 
+- \frac{\partial p_0 }{\partial y } h_{\psi}
+- 0.5 \frac{R}{C} \rho_0 \left(
+  f_{r0} v_{r,\psi} v_{y0} 
++ f_{s0} v_{s,\psi} v_{y0} 
++ f_{s,\psi} v_{s0} v_{y0}
++ f_{r,\psi} v_{r0} v_{y0}   
+\right)
++ 0.5 \frac{R^2 \Omega}{C u_*} \rho_0 \left(
+f_{r,\psi} v_{r0} + f_{r0} v_{r,\psi}
+\right)
+- i \sigma \rho_0 h_0 v_{y,\psi}
+- \left[ i \sigma \rho_0 h_{\psi} v_{y0} \right]
+\end{dmath*}
+
+
+Re-arranging and simplifying the terms in brackets
+using first-order continuity equation
+
+\begin{dmath*}
+ \frac{\partial \left( \rho_0 h_0 v_{x0} v_{y,\psi} \right)}{\partial x}  
++ \frac{\partial \left( \rho_0 h_0 v_{y0} v_{y,\psi} \right)}{\partial y}
++ 0.5 \frac{R}{C} \rho_0 \left(
+  f_{r0} v_{r0} + f_{s0} v_{s0}
+\right) v_{y,\psi}  
+= 
+  S_{v_{y,\phi}}
+\end{dmath*}
+
+where
+
+\begin{dmath*}
+S_{v_{y,\phi}} = 
+  - \frac{\partial p_{\psi} }{\partial y } h_0 
+ - \textcolor{magenta}{
+ \rho_0 h_0 v_{x,\psi} \frac{\partial v_{y0}}{\partial x}  
+- \rho_0 h_0 v_{y,\psi} \frac{\partial v_{y0}}{\partial y}
+ }   
+- \rho_0 h_{\psi} v_{x0} \frac{\partial v_{y0}}{ \partial x}
+- \rho_0 h_{\psi} v_{y0} \frac{\partial v_{y0}}{ \partial y}
+- \frac{\partial p_0 }{\partial y } h_{\psi}
+- 0.5 \frac{R}{C} \rho_0 v_{y0} \left(
+  f_{r0} v_{r,\psi}  
++ f_{s0} v_{s,\psi} 
++ f_{s,\psi} v_{s0} 
++ f_{r,\psi} v_{r0}   
+\right)
++ 0.5 \frac{R^2 \Omega}{C u_*} \rho_0 \left(
+f_{r,\psi} v_{r0} + f_{r0} v_{r,\psi}
+\right)
+- \textcolor{cyan}{i \sigma \rho_0 h_0 v_{y,\psi}}
+\end{dmath*}
+
+Substituting partial derivatives of rotor and stator velocities and
+assuming Blasius friction factor
+
+\begin{dmath*}
+S_{v_{y,\phi}} = 
+  - \frac{\partial p_{\psi} }{\partial y } h_0 
+ \textcolor{magenta}{
+- \rho_0 h_0 v_{x,\psi} \frac{\partial v_{y0}}{\partial x}  
+- \rho_0 h_0 v_{y,\psi} \frac{\partial v_{y0}}{\partial y}
+ }   
+- \rho_0 h_{\psi} v_{x0} \frac{\partial v_{y0}}{ \partial x}
+- \rho_0 h_{\psi} v_{y0} \frac{\partial v_{y0}}{ \partial y}
+- \frac{\partial p_0 }{\partial y } h_{\psi}
+%
+- 0.5 \frac{R}{C} \rho_0 v_{y0} \left\{
+ \frac{f_{r0} }{v_{r0}} \left[ v_{x0}  v_{x,\psi}
++ \left( v_{y0} - v_t \right) v_{y,\psi} \right]
+%
++ \frac{f_{s0} }{v_{s0}} \left( v_{x0} v_{x,\psi}
++ v_{y0} v_{y,\psi} \right)
+%
++ \frac{ m_s}{v_{s0}} f_{s0} \left(
+  v_{x0} v_{x,\psi}
++ v_{y0} v_{y,\psi}
+\right)
+ +
+\frac{v_{s0} m_s}{h_{0}} f_{s0} h_{\psi}
+%
++ \frac{ m_r}{v_{r0}} f_{r0} \left[
+   v_{x0}  v_{x,\psi}
++ \left( v_{y0} - v_t \right) v_{y,\psi}
+\right]
+ +
+\frac{v_{r0} m_r}{h_{0}} f_{r0} h_{\psi}
+\right\}
+%
++ 0.5 \frac{R^2 \Omega}{C u_*} \rho_0 
+\left\{
+ \frac{m_r}{v_{r0}} f_{r0} \left[
+   v_{x0} v_{x,\psi}
++ \left( v_{y0} - v_t \right) v_{y,\psi}
+\right]
+ +
+\frac{m_r v_{r0}}{h_{0}} f_{r0} h_{\psi}
++ \frac{f_{r0}}{v_{r0}} \left[  v_{x0} v_{x,\psi}
++ \left( v_{y0} - v_t \right) v_{y,\psi} \right]
+\right\}
+- \textcolor{cyan}{i \sigma \rho_0 h_0 v_{y,\psi}}
+\end{dmath*}
+
+Simplifying...
+
+
+\begin{dmath*}
+S_{v_{y,\phi}} = 
+  - \frac{\partial p_{\psi} }{\partial y } h_0 
+ \textcolor{magenta}{
+- \rho_0 h_0 v_{x,\psi} \frac{\partial v_{y0}}{\partial x}  
+- \rho_0 h_0 v_{y,\psi} \frac{\partial v_{y0}}{\partial y}
+ }   
+- \rho_0 h_{\psi} v_{x0} \frac{\partial v_{y0}}{ \partial x}
+- \rho_0 h_{\psi} v_{y0} \frac{\partial v_{y0}}{ \partial y}
+- \frac{\partial p_0 }{\partial y } h_{\psi}
+%
+- 0.5 \frac{R}{C} \rho_0 v_{y0} \left\{
+ \frac{\left( 1 + m_r \right) f_{r0} }{v_{r0}} \left[ v_{x0}  v_{x,\psi}
++ \left( v_{y0} - v_t \right) v_{y,\psi} \right]
+%
++ \frac{\left( 1 + m_s \right) f_{s0} }{v_{s0}} \left( v_{x0} v_{x,\psi}
++ v_{y0} v_{y,\psi} \right)
+%
+ +
+\frac{v_{s0} m_s}{h_{0}} f_{s0} h_{\psi}
+%
+ +
+\frac{v_{r0} m_r}{h_{0}} f_{r0} h_{\psi}
+\right\}
+%
++ 0.5 \frac{R^2 \Omega}{C u_*} \rho_0 
+\left\{
+\frac{\left( 1 + m_r \right) }{v_{r0}} f_{r0} \left[
+   v_{x0} v_{x,\psi}
++ \left( v_{y0} - v_t \right) v_{y,\psi}
+\right]
+ +
+\frac{m_r v_{r0}}{h_{0}} f_{r0} h_{\psi}
+\right\}
+- \textcolor{cyan}{i \sigma \rho_0 h_0 v_{y,\psi}}
+\end{dmath*}
+
+
+%\bibliographystyle{ieeetr}
+%\bibliography{bf_fvm_ref}
+
+ 
+\end{document}
