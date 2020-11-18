@@ -1,0 +1,50 @@
+# parameters for seal 01 (long) in Kanki and Kawakami 1984
+# geometric and operational
+C : 0.0005                # radial clearance [m]
+R : 0.1                   # rotor radius [m]
+L : 0.2                   # seal length [m]
+rho_s : 996.8914          # nominal/scaling density [kg/m^3]
+mu_s : 0.0008779876       # nominal/scaling dynamic viscosity [Pa.s]
+rpm_rotor : 2000.0        # rotor speed [rpm]
+u_s : 10.0                # scaling velocity [m/s], exp. axial or circ. velocity
+ex : 0.8                  # rotor relative eccentricity in X-dir. [-]
+ey : 0.0                  # rotor relative eccentricity in Y-dir. [-]
+angX : 0.000              # inactive, rotor angular rotation about X [rad]
+angY : 0.000              # inactive, rotor angular rotation about Y [rad]
+p_in : 14.7e+05           # inlet total pressure [Pa]
+xi_in : 0.2               # inlet loss coefficient [-]
+rpm_inlet : 3000.0        # inlet rotational speed [rpm]
+p_exit : 4.9e+05          # exit total pressure [Pa]
+xi_exit : 1.0             # exit recoviery coefficient
+# friction choices : 'blasius', 'hirs', 'haaland', 'universal'
+friction : 'blasius' # 
+rotor_roughness : 0.0     # rotor relative roughness [-]
+stator_roughness : 0.0    # stator relative roughness [-]
+# numerical
+gamma : 0.1               # blending coefficient for convective terms
+                          # 1 : linear, 0 : first-order upwind
+Nx : 10                   # number of cells in axial direction
+Ny : 20                   # number of cells in circ. direction
+relax_uv : 0.7            # relaxation of zeroth-order momentum
+relax_uv1 : 0.7           # inactive
+relax_p : 0.3             # relaxation of zeroth-order pressure
+u_tol : 1.0e-7            # tolerance threshold on axial momentum
+v_tol : 1.0e-7            # tolerance threshold on circ. momentum
+m_tol : 1.0e-7            # tolerance threshold on continuity / pressure corr.
+#uv_src_method : 0         # treatment of friction source terms
+                          # 0 : simple blending
+                          # 1 : linearized 
+uv_src_blend : 1.0        # blending coefficient for momentum friction terms
+                          # 1 : fully implicit, 0 : fully explicit
+max_it : 1000             # maximum iterations for zeroth-order solution
+max_it_pert : 1000        # inactive
+nCorrectors : 2           # number of explicit corrections, 2-3 good choice
+# other
+whirl_f : 50.0            # rotor whirling frequency [rad/s]
+read_restart : False      # inactive
+save_restart : False      # inactive
+print_residuals : True    # inactive, True : print residuals
+print_output : True       # inactive
+pert_dir : 'X'            # inactive, pertubation direction for 1-st order solution
+                          # 'X' or 'Y'
+debug_seal : False        # debug flag

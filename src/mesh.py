@@ -5,6 +5,15 @@ import numpy as np
 
 class mesh(object):
     def __init__(self, params):
+    
+        # reference dictionary
+        ref_dict =  {'Nx','Ny','L','R','C','ex','ey','angX','angY'}
+        # simple check if required parameters are present, throw KeyError
+        # if not. 
+        for key in ref_dict:
+            if key not in params:
+                raise KeyError(f"'{key}' missing from input parameter dictionary")
+    
         # input parameters
         self.Nx = params.get('Nx')
         self.Ny = params.get('Ny')

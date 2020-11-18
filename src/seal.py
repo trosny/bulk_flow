@@ -24,6 +24,22 @@ class seal(mesh.mesh):
     def __init__(self, params):
         super(seal, self).__init__(params)
         #mesh(self).__init__(params)
+        
+        # reference dictionary
+        ref_dict =  {'gamma','relax_uv','relax_p','u_tol','v_tol',\
+                     'm_tol','uv_src_method','uv_src_blend','max_it','max_it_pert',\
+                     'nCorrectors','u_s','rho_s','mu_s','rpm_rotor','p_in','xi_in',\
+                     'rpm_inlet','p_exit','xi_exit','friction','rotor_roughness',\
+                     'stator_roughness','whirl_f','read_restart','save_restart',\
+                     'print_residuals','print_output','pert_dir','debug_seal'}
+        # simple check if required parameters are present, throw KeyError
+        # if not. 
+        # TODO : - add type checking
+        #        - set default value to parameter if not present
+        for key in ref_dict:
+            if key not in params:
+                raise KeyError(f"'{key}' missing from input parameter dictionary")
+        
         # additional attributes
         self.gamma = params.get('gamma')
         self.gamma1 = params.get('gamma1')
@@ -63,7 +79,11 @@ class seal(mesh.mesh):
         #
         self.restart_seal()
 
-        
+    # def check_params(self):
+        # ref_dict =  {'gamma','gamma2'}
+        # self.assertRaises(KeyError, lambda        
+
+    
     def update_seal(self):
         self._seal_params()
         self._init_zeroth_bcs()
@@ -75,7 +95,7 @@ class seal(mesh.mesh):
         self._init_zeroth_bcs()
         self._init_zeroth_pressure()
         self._init_zeroth_massflux()
-
+    
     
     def _seal_params(self):
         ''' derived and non-dimensionalized parameters
