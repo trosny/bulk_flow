@@ -57,15 +57,24 @@ def main():
     py_r,cov = optimize.curve_fit(quad_func, pertFreq, np.real(fy), p0=[0.0, 0.0])     
     px_i,cov = optimize.curve_fit(linear_func, pertFreq, np.imag(fx), p0=[0.0]) 
     py_i,cov = optimize.curve_fit(linear_func, pertFreq, np.imag(fy), p0=[0.0]) 
-
+    
+    # print  leakage and dynamic coefficients
+    print('---Values---')
+    print("leakage [cm^3/s] : {a:g}".format(a=s.q/s.rho_s*1.e6 )) 
+    print("K_xx [MN/m]      : {a:g}".format(a=px_r[0]/1.e6 )) 
+    print("K_yx [MN/m]      : {a:g}".format(a=py_r[0]/1.e6 )) 
+    print("D_xx [kN.s/m]    : {a:g}".format(a=px_i[0]/1.e3 )) 
+    print("D_yx [kN.s/m]    : {a:g}".format(a=py_i[0]/1.e3 ))   
+    print("M_xx [kg]        : {a:g}".format(a=px_r[1] ))    
+    
     # print relative errors in leakage and dynamic coefficients
-    print('Relative errors')
+    print('---Relative errors---')
     print("leakage [%] : {a:g}".format(a=(s.q/s.rho_s*1.e6-q_exp) / q_exp * 100.0 )) 
     print("K_xx [%]    : {a:g}".format(a=(px_r[0]/1.e6-kxx_exp) / kxx_exp * 100.0 )) 
     print("K_yx [%]    : {a:g}".format(a=(py_r[0]/1.e6-kyx_exp) / kyx_exp * 100.0 )) 
     print("D_xx [%]    : {a:g}".format(a=(px_i[0]/1.e3-dxx_exp) / dxx_exp * 100.0 )) 
     print("D_yx [%]    : {a:g}".format(a=(py_i[0]/1.e3-dyx_exp) / dyx_exp * 100.0 ))   
-    print("M_xx [%]    : {a:g}".format(a=(px_r[1]-mxx_exp) / mxx_exp * 100.0 ))    
+    print("M_xx [%]    : {a:g}".format(a=(px_r[1]-mxx_exp) / mxx_exp * 100.0 ))  
       
     # generate figures of forces as a function of perturbation frequency
     # include data and curve-fits
