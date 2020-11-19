@@ -411,7 +411,7 @@ class seal(mesh.mesh):
                 #self.u1bc[idx] =  phi1[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
                 self.u1bc[idx] = self.u1[p]
                 self.v1bc[idx] = self.v1[p]
-                self.p1bc[idx] = 0.0 #- (1.0 - self.xi_exit) * np.abs(self.ubc[idx]) * self.u1bc[idx]
+                self.p1bc[idx] = (1.0 - self.xi_exit) * np.abs(self.ubc[idx]) * self.u1bc[idx]
                 
             if self.bc_type[idx] == 0:  # solid wall
                 pass
