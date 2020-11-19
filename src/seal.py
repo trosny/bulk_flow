@@ -304,7 +304,7 @@ class seal(mesh.mesh):
 
      
             self._correct_phi(self.phi1, self.rho, self.rhobc, self.p1_corr, self.p1_corr_bc)
-            #self._update_first_bcs()            
+            self._update_first_bcs()            
             
             # residuals / errors
             u_error = np.sum( np.abs( self.bu1 - self.A.dot(self.u1) ) )
@@ -373,12 +373,12 @@ class seal(mesh.mesh):
             if self.bc_type[idx] == 1:  # total pressure inlet
                 area = np.sqrt(sf[i, 0] ** 2 + sf[i, 1] ** 2) * hf[i]
                 self.ubc[idx] = phi[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
-                self.pbc[idx] = self.p_i - 0.5 * (1.0 + self.xi_in) * self.ubc[idx]**2
+                self.pbc[idx] = self.p_i - 0.5 * (1.0 + self.xi_in) * np.abs(self.ubc[idx]) ** 2
             if self.bc_type[idx] == 2:  # outlet
                 area = np.sqrt(sf[i, 0] ** 2 + sf[i, 1] ** 2) * hf[i]
                 self.ubc[idx] =  phi[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
                 self.vbc[idx] = self.v[p]
-                self.pbc[idx] = self.p_e - 0.5 * (1.0 - self.xi_exit) * self.ubc[idx] ** 2  # total pressure bc
+                self.pbc[idx] = self.p_e - 0.5 * (1.0 - self.xi_exit) * np.abs(self.ubc[idx]) ** 2  # total pressure bc
                 
             if self.bc_type[idx] == 0:  # solid wall
                 self.pbc[idx] = self.pbc[idx] + self.relax_p * self.ppbc[idx]
@@ -402,15 +402,16 @@ class seal(mesh.mesh):
             p = owner[i]
             if self.bc_type[idx] == 1:  # total pressure inlet
                 area = np.sqrt(sf[i, 0] ** 2 + sf[i, 1] ** 2) * hf[i]
-                self.u1bc[idx] = phi1[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
-                #self.u1bc[idx] = self.u1[p]
-                self.p1bc[idx] = - (1.0 + self.xi_in) * self.ubc[idx] * self.u1bc[idx]
+                #self.u1bc[idx] = phi1[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
+                self.u1bc[idx] = self.u1[p]
+                #self.p1bc[idx] = - (1.0 + self.xi_in) * np.abs(self.ubc[idx]) * (np.abs(np.real(self.u1bc[idx])) + np.abs(np.imag(self.u1bc[idx]))*1j)
+                self.p1bc[idx] = (1.0 + self.xi_in) * np.abs(self.ubc[idx]) * self.u1bc[idx]
             if self.bc_type[idx] == 2:  # outlet
                 area = np.sqrt(sf[i, 0] ** 2 + sf[i, 1] ** 2) * hf[i]
-                self.u1bc[idx] =  phi1[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
-                #self.u1bc[idx] = self.u1[p]
+                #self.u1bc[idx] =  phi1[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
+                self.u1bc[idx] = self.u1[p]
                 self.v1bc[idx] = self.v1[p]
-                self.p1bc[idx] = - (1.0 - self.xi_exit) * self.ubc[idx] * self.u1bc[idx]
+                self.p1bc[idx] = 0.0 #- (1.0 - self.xi_exit) * np.abs(self.ubc[idx]) * self.u1bc[idx]
                 
             if self.bc_type[idx] == 0:  # solid wall
                 pass
@@ -768,7 +769,7 @@ class seal(mesh.mesh):
                          + (1. + m) * f_s[i] / U_s[i] * ( u[i] * u1[i] + v[i] * v1[i] ) \
                          + U_s[i] * m * f_s[i] * h_psi / hc[i]  \
                          + U_r[i] * m * f_r[i] * h_psi / hc[i] ) \
-                         - 1j * self.sigma * rho[i] * hc[i] * u1[i] ) * cell[i,2]                                        
+                         + 1j * self.sigma * rho[i] * hc[i] * u1[i] ) * cell[i,2]                                        
                 
                 self.bv1[i] += ( - rho[i] * hc[i] * u1[i] * grad_v[i, 0]  \
                          - rho[i] * hc[i] * v1[i] * grad_v[i, 1]  \
@@ -780,7 +781,7 @@ class seal(mesh.mesh):
                          + (1. + m) * f_s[i]  / U_s[i] * ( u[i] * u1[i] + v[i] * v1[i] ) \
                          + U_s[i] * m * f_s[i] * h_psi /  hc[i] \
                          + U_r[i] * m * f_r[i] * h_psi / hc[i] ) \
-                         - 1j * self.sigma * rho[i] * hc[i] * v1[i] ) * cell[i,2]
+                         + 1j * self.sigma * rho[i] * hc[i] * v1[i] ) * cell[i,2]
                
                 # # Note that param['v_r'] = param['R'] * param['Omega'] / param['u_s']           
                    
@@ -1137,7 +1138,7 @@ class seal(mesh.mesh):
             self.bp1[i] += (- self.rho[i] * h_psi * self.grad_u[i,0]  \
                     - self.rho[i] * h_psi * self.grad_v[i,1]  \
                     - self.rho[i] * self.v[i] * h_psi_grad  \
-                    - 1j * self.sigma * self.rho[i] * h_psi ) * cell[i,2]  
+                    + 1j * self.sigma * self.rho[i] * h_psi ) * cell[i,2]  
             #self.bp1[i] = - self.bp1[i]         
             
 

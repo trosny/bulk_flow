@@ -1,0 +1,135 @@
+# Summary of results
+
+## NO BC implemented for first-order problem
+
+10 x 20 (grid density, Nx x Ny)
+
+---Values (model | exp)---
+leakage [cm^3/s] : 4673.79 | 4634
+K_xx [MN/m]      : 5.42049 | 3.59
+K_yx [MN/m]      : 20.8265 | 10.8
+D_xx [kN.s/m]    : 277.408 | 147
+D_yx [kN.s/m]    : -73.663 | 55.3
+M_xx [kg]        : 415.196 | 221.5
+---Relative errors---
+leakage [%] : 0.858638
+K_xx [%]    : 50.9885
+K_yx [%]    : 92.8383
+D_xx [%]    : 88.7126
+D_yx [%]    : -233.206
+M_xx [%]    : 87.4476
+
+20 x 40
+
+---Values (model | exp)---
+leakage [cm^3/s] : 4673.09 | 4634
+K_xx [MN/m]      : 5.31575 | 3.59
+K_yx [MN/m]      : 18.817 | 10.8
+D_xx [kN.s/m]    : 250.405 | 147
+D_yx [kN.s/m]    : -68.2022 | 55.3
+M_xx [kg]        : 377.356 | 221.5
+---Relative errors---
+leakage [%] : 0.843577
+K_xx [%]    : 48.0711
+K_yx [%]    : 74.2311
+D_xx [%]    : 70.3437
+D_yx [%]    : -223.331
+M_xx [%]    : 70.3638
+
+## BC implementation 1, use "mass flux" at inlet for u
+
+10 x 20
+
+---Values (model | exp)---
+leakage [cm^3/s] : 4673.79 | 4634
+K_xx [MN/m]      : 6.14143 | 3.59
+K_yx [MN/m]      : 9.81498 | 10.8
+D_xx [kN.s/m]    : 112.72 | 147
+D_yx [kN.s/m]    : -52.4166 | 55.3
+M_xx [kg]        : 294.34 | 221.5
+---Relative errors---
+leakage [%] : 0.858638
+K_xx [%]    : 71.0704
+K_yx [%]    : -9.12054
+D_xx [%]    : -23.32
+D_yx [%]    : -194.786
+M_xx [%]    : 32.8848
+
+
+## BC implementation 2, extrapolate u from interior to inlet
+
+10 x 20
+
+rpm_inlet = 400, sr = 0.2
+
+---Values (model | exp)---
+leakage [cm^3/s] : 4673.79 | 4634
+K_xx [MN/m]      : 3.74828 | 3.59
+K_yx [MN/m]      : 10.894 | 10.8
+D_xx [kN.s/m]    : 140.536 | 147
+D_yx [kN.s/m]    : -53.784 | 55.3
+M_xx [kg]        : 302.827 | 221.5
+---Relative errors---
+leakage [%] : 0.858638
+K_xx [%]    : 4.409
+K_yx [%]    : 0.870695
+D_xx [%]    : -4.39696
+D_yx [%]    : -197.259
+M_xx [%]    : 36.7165
+
+rpm_inlet = 2000, sr = 1.0
+
+---Values (model | exp)---
+leakage [cm^3/s] : 4663.72 | 4634
+K_xx [MN/m]      : 6.26411 | 3.59
+K_yx [MN/m]      : 21.312 | 10.8
+D_xx [kN.s/m]    : 142.508 | 147
+D_yx [kN.s/m]    : -78.1275 | 55.3
+M_xx [kg]        : 304.504 | 221.5
+---Relative errors---
+leakage [%] : 0.641285
+K_xx [%]    : 74.4878
+K_yx [%]    : 97.333
+D_xx [%]    : -3.0555
+D_yx [%]    : -241.279
+M_xx [%]    : 37.4734
+
+Direct stiffness increased substantially when increased inlet swirl. This
+behavior is strange. The expectation is that the direct stiffness would remain
+nearly constant or slightly decrease with increasing inlet swirl, see bulk
+flow review paper for example.
+
+20 x 40
+
+---Values (model | exp)---
+leakage [cm^3/s] : 4673.09 | 4634
+K_xx [MN/m]      : 3.22887 | 3.59
+K_yx [MN/m]      : 10.1188 | 10.8
+D_xx [kN.s/m]    : 129.968 | 147
+D_yx [kN.s/m]    : -53.3908 | 55.3
+M_xx [kg]        : 297.64 | 221.5
+---Relative errors---
+leakage [%] : 0.843577
+K_xx [%]    : -10.0593
+K_yx [%]    : -6.30775
+D_xx [%]    : -11.5866
+D_yx [%]    : -196.548
+M_xx [%]    : 34.3745
+
+
+30 x 50
+
+---Values (model | exp)---
+leakage [cm^3/s] : 4672.84 | 4634
+K_xx [MN/m]      : 3.02766 | 3.59
+K_yx [MN/m]      : 9.92962 | 10.8
+D_xx [kN.s/m]    : 127.549 | 147
+D_yx [kN.s/m]    : -53.2735 | 55.3
+M_xx [kg]        : 296.506 | 221.5
+---Relative errors---
+leakage [%] : 0.838073
+K_xx [%]    : -15.664
+K_yx [%]    : -8.05908
+D_xx [%]    : -13.2322
+D_yx [%]    : -196.336
+M_xx [%]    : 33.8627
