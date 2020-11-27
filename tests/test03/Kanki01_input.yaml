@@ -25,6 +25,8 @@ gamma : 0.1               # blending coefficient for convective terms
                           # 1 : linear, 0 : first-order upwind
 Nx : 20                   # number of cells in axial direction
 Ny : 30                   # number of cells in circ. direction
+relax_mode : 'implicit'   # relation mode of momentum equation solution
+                          # 'explicit' or 'implicit'
 relax_uv : 0.7            # relaxation of zeroth-order momentum
 relax_uv1 : 0.7           # inactive
 relax_p : 0.3             # relaxation of zeroth-order pressure

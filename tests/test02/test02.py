@@ -4,7 +4,7 @@
  
  Getting converged solution on refined grid at larger eccentricity ratios.
  
- - For large eccentricity ratios (e.g. 0.8), convergence difficulties
+ - For large eccentricity ratios (e >= 0.5), convergence difficulties
    are encountered for the zeroth-order problem. Notably, the issue seems
    to stem from friction source terms.
  - An alternative treatment of the friction source terms has been implemented

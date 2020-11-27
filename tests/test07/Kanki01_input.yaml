@@ -23,11 +23,11 @@ stator_roughness : 0.0    # stator relative roughness [-]
 # numerical
 gamma : 0.0               # blending coefficient for convective terms
                           # 1 : linear, 0 : first-order upwind
-Nx : 10                   # number of cells in axial direction
-Ny : 20                   # number of cells in circ. direction
-relax_mode : 'explicit'   # relation mode of momentum equation solution
+Nx : 8 #10                   # number of cells in axial direction
+Ny : 10 #20                   # number of cells in circ. direction
+relax_mode : 'implicit'   # relation mode of momentum equation solution
                           # 'explicit' or 'implicit'
-relax_uv : 1.0            # relaxation of zeroth-order momentum
+relax_uv : 0.7            # relaxation of zeroth-order momentum
 relax_uv1 : 0.7           # inactive
 relax_p : 0.5             # relaxation of zeroth-order pressure
 u_tol : 1.0e-8            # tolerance threshold on axial momentum

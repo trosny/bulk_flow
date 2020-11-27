@@ -7,7 +7,7 @@ rho_s : 996.8914          # nominal/scaling density [kg/m^3]
 mu_s : 0.0008779876       # nominal/scaling dynamic viscosity [Pa.s]
 rpm_rotor : 2000.0        # rotor speed [rpm]
 u_s : 10.0                # scaling velocity [m/s], exp. axial or circ. velocity
-ex : 0.8                  # rotor relative eccentricity in X-dir. [-]
+ex : 0.5                  # rotor relative eccentricity in X-dir. [-]
 ey : 0.0                  # rotor relative eccentricity in Y-dir. [-]
 angX : 0.000              # inactive, rotor angular rotation about X [rad]
 angY : 0.000              # inactive, rotor angular rotation about Y [rad]
@@ -25,6 +25,8 @@ gamma : 0.1               # blending coefficient for convective terms
                           # 1 : linear, 0 : first-order upwind
 Nx : 10                   # number of cells in axial direction
 Ny : 20                   # number of cells in circ. direction
+relax_mode : 'implicit'   # relation mode of momentum equation solution
+                          # 'explicit' or 'implicit'
 relax_uv : 0.7            # relaxation of zeroth-order momentum
 relax_uv1 : 0.7           # inactive
 relax_p : 0.3             # relaxation of zeroth-order pressure

@@ -26,7 +26,7 @@ class seal(mesh.mesh):
         #mesh(self).__init__(params)
         
         # reference dictionary
-        ref_dict =  {'gamma','relax_uv','relax_p','u_tol','v_tol',\
+        ref_dict =  {'gamma','relax_mode','relax_uv','relax_uv1','relax_p','u_tol','v_tol',\
                      'm_tol','uv_src_method','uv_src_blend','max_it','max_it_pert',\
                      'nCorrectors','u_s','rho_s','mu_s','rpm_rotor','p_in','xi_in',\
                      'rpm_inlet','p_exit','xi_exit','friction','rotor_roughness',\
@@ -43,7 +43,9 @@ class seal(mesh.mesh):
         # additional attributes
         self.gamma = params.get('gamma')
         self.gamma1 = params.get('gamma1')
+        self.relax_mode = params.get('relax_mode')
         self.relax_uv = params.get('relax_uv')
+        self.relax_uv1 = params.get('relax_uv1')
         self.relax_p = params.get('relax_p')
         self.u_tol = params.get('u_tol')
         self.v_tol = params.get('v_tol')
@@ -182,8 +184,11 @@ class seal(mesh.mesh):
             #self.A = self.A.tolil() * 0.0
             self._setup_zeroth_uv()
             self.u_star = spsolve(self.A.tocsr(), self.bu)
-            self.v_star = spsolve(self.A.tocsr(), self.bv)
-            #self.v_star = spsolve(self.A2.tocsr(), self.bv)
+            
+            if self.uv_src_method == 1:
+                self.v_star = spsolve(self.A2.tocsr(), self.bv)
+            else: 
+                self.v_star = spsolve(self.A.tocsr(), self.bv)            
             
             self.Dp = self.cell[:,2] * self.hc / self.apu
             self._cc_to_int_faces(self.Df, self.Dp)
@@ -207,8 +212,15 @@ class seal(mesh.mesh):
             #print(self.grad_p_corr[:,0])
             self.grad_p_corr = self._cc_grad(self.grad_p_corr, self.p_corr, self.p_corr_bc)        
 
-            self.u = self.u_star - self.Dp * self.grad_p_corr[:,0]
-            self.v = self.v_star - self.Dp * self.grad_p_corr[:,1]
+            # implicit under-relaxation
+            if self.relax_mode == 'implicit':
+                self.u = self.u_star - self.Dp * self.grad_p_corr[:,0]
+                self.v = self.v_star - self.Dp * self.grad_p_corr[:,1]
+            # explicit under-relaxation
+            elif self.relax_mode == 'explicit':
+                self.u = ( 1. - self.relax_uv ) * self.u + self.relax_uv * ( self.u_star - self.Dp * self.grad_p_corr[:,0] )
+                self.v = ( 1. - self.relax_uv ) * self.v + self.relax_uv * ( self.v_star - self.Dp * self.grad_p_corr[:,1] )
+            
             self.press = self.press + self.relax_p * self.p_corr
             #print(self.grad_p_corr[:,0])
      
@@ -229,8 +241,15 @@ class seal(mesh.mesh):
             
                 self.grad_p_corr = self._cc_grad(self.grad_p_corr, self.p_corr, self.p_corr_bc)        
 
-                self.u = self.u_star - self.Dp * self.grad_p_corr[:,0]
-                self.v = self.v_star - self.Dp * self.grad_p_corr[:,1]
+                # implicit under-relaxation
+                if self.relax_mode == 'implicit':
+                    self.u = self.u_star - self.Dp * self.grad_p_corr[:,0]
+                    self.v = self.v_star - self.Dp * self.grad_p_corr[:,1]
+                # explicit under-relaxation
+                elif self.relax_mode == 'explicit':
+                    self.u = ( 1. - self.relax_uv ) * self.u + self.relax_uv * ( self.u_star - self.Dp * self.grad_p_corr[:,0] )
+                    self.v = ( 1. - self.relax_uv ) * self.v + self.relax_uv * ( self.v_star - self.Dp * self.grad_p_corr[:,1] )
+                    
                 self.press = self.press + self.relax_p * self.p_corr
 
                 self._correct_phi(self.phi, self.rho, self.rhobc, self.p_corr, self.p_corr_bc)
@@ -243,7 +262,10 @@ class seal(mesh.mesh):
             m_in = np.sum( self.phi[self.Nfstart[3]:self.Nf] )
             # residuals / errors
             u_error = np.sum( np.abs( self.bu - self.A.dot(self.u) ) )
-            v_error = np.sum( np.abs( self.bv - self.A.dot(self.v) ) ) 
+            if self.uv_src_method == 1:
+                v_error = np.sum( np.abs( self.bv - self.A2.dot(self.v) ) ) 
+            else:
+                v_error = np.sum( np.abs( self.bv - self.A.dot(self.v) ) ) 
             m_error = np.sum(np.abs(self.bp) )
             
             outer_iter += 1
@@ -298,8 +320,14 @@ class seal(mesh.mesh):
 
             self.grad_p1_corr = self._cc_grad(self.grad_p1_corr, self.p1_corr, self.p1_corr_bc)        
 
-            self.u1 = self.u_star1 - self.Dp * self.grad_p1_corr[:,0]
-            self.v1 = self.v_star1 - self.Dp * self.grad_p1_corr[:,1]
+            if self.relax_mode == 'implicit':
+                self.u1 = self.u_star1 - self.Dp * self.grad_p1_corr[:,0]
+                self.v1 = self.v_star1 - self.Dp * self.grad_p1_corr[:,1]
+             # explicit under-relaxation
+            elif self.relax_mode == 'explicit':
+                self.u1 = ( 1. - self.relax_uv1 ) * self.u1 + self.relax_uv1 * ( self.u_star1 - self.Dp * self.grad_p1_corr[:,0] )
+                self.v1 = ( 1. - self.relax_uv1 ) * self.v1 + self.relax_uv1 * ( self.v_star1 - self.Dp * self.grad_p1_corr[:,1] )
+            
             self.press1 = self.press1 + self.relax_p * self.p1_corr
 
      
@@ -699,12 +727,7 @@ class seal(mesh.mesh):
                 + f_s[i] * self.v[i] ) + \
                 0.5 * (self.R / self.C) * self.rho[i] * self.v_r * ( \
                 - (1. + m) * f_r[i] * (self.v[i] - self.v_r ) / U_r[i] )  
-                
-                # dsy_dvy =  - 0.5 * (self.R / self.C) * self.rho[i] * ( 
-                # - (1. + m) * f_r[i] * self.v[i] * (self.v[i] - self.v_r ) / U_r[i]  \
-                # + f_r[i] * self.v[i] +  \
-                # - (1. + m) * f_s[i] * self.v[i] * (self.v[i] - self.v_r ) / U_s[i]  \
-                # + f_s[i] * self.v[i] )             
+                         
                 
                 Scx = (sx - dsx_dvx * self.u[i])
                 Scy = (sy - dsy_dvy * self.v[i])   
@@ -715,14 +738,17 @@ class seal(mesh.mesh):
                 self.bv[i] += (1. - self.uv_src_blend) * Scy * self.cell[i, 2] 
                 #self.bv[i] += 0.5 * (self.R / self.C) * self.v_r * self.rho[i] * (U_r[i] * f_r[i]) * self.cell[i, 2] 
 
-            self.A[i, i] = self.A[i, i] / self.relax_uv  # relax main diagonal
-            self.A2[i, i] = self.A2[i, i] / self.relax_uv
+            if self.relax_mode == 'implicit':
+                self.A[i, i] = self.A[i, i] / self.relax_uv  # relax main diagonal
+                self.A2[i, i] = self.A2[i, i] / self.relax_uv
         
 
         self.apu = self.A.diagonal(0) #ap / param['relax_uv']
         self.apv = self.A2.diagonal(0) #ap / param['relax_uv']
-        self.bu += (1. - self.relax_uv) * self.apu * self.u  # relaxation has been applied to ap, i.e. ap = ap / relax
-        self.bv += (1. - self.relax_uv) * self.apv * self.v
+        
+        if self.relax_mode == 'implicit':
+            self.bu += (1. - self.relax_uv) * self.apu * self.u  # relaxation has been applied to ap, i.e. ap = ap / relax
+            self.bv += (1. - self.relax_uv) * self.apv * self.v
 
     def _setup_first_uv(self):
         '''
@@ -757,43 +783,59 @@ class seal(mesh.mesh):
             if self.pert_dir == 'Y':
                 h_psi = np.sin(cell[i,1])
             
-            if self.friction == 'blasius':
-
-                self.bu1[i] += (- rho[i] * hc[i] * u1[i] * grad_u[i, 0]  \
-                         - rho[i] * hc[i] * v1[i] * grad_u[i, 1]  \
-                         - rho[i] * h_psi * u[i] * grad_u[i, 0]  \
-                         - rho[i] * h_psi * v[i] * grad_u[i, 1] \
-                         - grad_p[i, 0] * h_psi \
-                         - 0.5 * (self.R / self.C) * rho[i] * u[i] * ( \
-                         + (1. + m) * f_r[i] / U_r[i] * ( u[i] * u1[i] + (v[i] - self.v_r) * v1[i] ) \
-                         + (1. + m) * f_s[i] / U_s[i] * ( u[i] * u1[i] + v[i] * v1[i] ) \
-                         + U_s[i] * m * f_s[i] * h_psi / hc[i]  \
-                         + U_r[i] * m * f_r[i] * h_psi / hc[i] ) \
-                         + 1j * self.sigma * rho[i] * hc[i] * u1[i] ) * cell[i,2]                                        
+            if self.uv_src_method == 0:
+                flux = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.cell[i, 2] 
                 
-                self.bv1[i] += ( - rho[i] * hc[i] * u1[i] * grad_v[i, 0]  \
-                         - rho[i] * hc[i] * v1[i] * grad_v[i, 1]  \
-                         - rho[i] * h_psi * u[i] * grad_v[i, 0]  \
-                         - rho[i] * h_psi * v[i] * grad_v[i, 1]  \
-                         - grad_p[i, 1] * h_psi  \
-                         - 0.5 * (self.R / self.C) * rho[i] * v[i]  * ( \
-                         + (1. + m) * f_r[i]  / U_r[i] * ( u[i] * u1[i] + (v[i] - self.v_r) * v1[i] ) \
-                         + (1. + m) * f_s[i]  / U_s[i] * ( u[i] * u1[i] + v[i] * v1[i] ) \
-                         + U_s[i] * m * f_s[i] * h_psi /  hc[i] \
-                         + U_r[i] * m * f_r[i] * h_psi / hc[i] ) \
-                         + 1j * self.sigma * rho[i] * hc[i] * v1[i] ) * cell[i,2]
-               
-                # # Note that param['v_r'] = param['R'] * param['Omega'] / param['u_s']           
+                self.bu1[i] += (1. - self.uv_src_blend) * flux * self.u1[i]  # explicit portion
+                self.bv1[i] += (1. - self.uv_src_blend) * flux * self.v1[i]
+            
+                if self.friction == 'blasius':
+
+                    self.bu1[i] += (- rho[i] * hc[i] * u1[i] * grad_u[i, 0]  \
+                             - rho[i] * hc[i] * v1[i] * grad_u[i, 1]  \
+                             - rho[i] * h_psi * u[i] * grad_u[i, 0]  \
+                             - rho[i] * h_psi * v[i] * grad_u[i, 1] \
+                             - grad_p[i, 0] * h_psi \
+                             - 0.5 * (self.R / self.C) * rho[i] * u[i] * ( \
+                             + (1. + m) * f_r[i] / U_r[i] * ( u[i] * u1[i] + (v[i] - self.v_r) * v1[i] ) \
+                             + (1. + m) * f_s[i] / U_s[i] * ( u[i] * u1[i] + v[i] * v1[i] ) \
+                             + U_s[i] * m * f_s[i] * h_psi / hc[i]  \
+                             + U_r[i] * m * f_r[i] * h_psi / hc[i] ) \
+                             + 1j * self.sigma * rho[i] * hc[i] * u1[i] ) * cell[i,2]                                        
+                    
+                    self.bv1[i] += ( - rho[i] * hc[i] * u1[i] * grad_v[i, 0]  \
+                             - rho[i] * hc[i] * v1[i] * grad_v[i, 1]  \
+                             - rho[i] * h_psi * u[i] * grad_v[i, 0]  \
+                             - rho[i] * h_psi * v[i] * grad_v[i, 1]  \
+                             - grad_p[i, 1] * h_psi  \
+                             - 0.5 * (self.R / self.C) * rho[i] * v[i]  * ( \
+                             + (1. + m) * f_r[i]  / U_r[i] * ( u[i] * u1[i] + (v[i] - self.v_r) * v1[i] ) \
+                             + (1. + m) * f_s[i]  / U_s[i] * ( u[i] * u1[i] + v[i] * v1[i] ) \
+                             + U_s[i] * m * f_s[i] * h_psi /  hc[i] \
+                             + U_r[i] * m * f_r[i] * h_psi / hc[i] ) \
+                             + 1j * self.sigma * rho[i] * hc[i] * v1[i] ) * cell[i,2]
                    
-                self.bv1[i] +=  0.5 * (self.R * self.v_r) / (self.C) * rho[i] * cell[i, 2] * ( \
-                         + (1. + m) * f_r[i] / U_r[i] * ( u[i] * u1[i] + (v[i] - self.v_r) * v1[i]) \
-                         + m * U_r[i] * f_r[i] * h_psi / hc[i] )                           
-                         
-            elif param['friction'] == 'moody':
-                pass
+                    # # Note that param['v_r'] = param['R'] * param['Omega'] / param['u_s']           
+                       
+                    self.bv1[i] +=  0.5 * (self.R * self.v_r) / (self.C) * rho[i] * cell[i, 2] * ( \
+                             + (1. + m) * f_r[i] / U_r[i] * ( u[i] * u1[i] + (v[i] - self.v_r) * v1[i]) \
+                             + m * U_r[i] * f_r[i] * h_psi / hc[i] )                           
+                             
+                elif param['friction'] == 'moody':
+                    pass            
+                
+                
+            elif self.uv_src_method == 1:
+                raise ValueError(f"uv_src_method = 1 is not implemented for first-order problem, \
+                use uv_src_method = 0")
+            
+            
+            
+
      
-        self.bu1 += (1. - self.relax_uv) * self.apu * self.u1  # relaxation has been applied to ap, i.e. ap = ap / relax
-        self.bv1 += (1. - self.relax_uv) * self.apu * self.v1
+        if self.relax_mode == 'implicit':
+            self.bu1 += (1. - self.relax_uv) * self.apu * self.u1  # relaxation has been applied to ap, i.e. ap = ap / relax
+            self.bv1 += (1. - self.relax_uv) * self.apu * self.v1
 
     def _solve_uv_explicit(self):
         '''
@@ -813,6 +855,8 @@ class seal(mesh.mesh):
         bu = np.zeros(self.Nc, dtype=np.float64)
         bv = np.zeros(self.Nc, dtype=np.float64)
         ap = np.zeros(self.Nc, dtype=np.float64)
+        if self.uv_src_method == 1:
+            ap2 = np.zeros(self.Nc, dtype=np.float64)
         
         u = self.u
         v = self.v
@@ -875,24 +919,72 @@ class seal(mesh.mesh):
 
             idx += 1
 
+
+        if self.uv_src_method == 1:
+            ap2 = ap
+        
         U_r, U_s, f_r, f_s = self._compute_friction(u, v)
 
         for i in range(self.Nc):
             bu[i] += - hc[i] * self.grad_p[i, 0] * self.cell[i, 2]  # pressure
             bv[i] += - hc[i] * self.grad_p[i, 1] * self.cell[i, 2]  # pressure
             # friction factor formulation
+            
+            
+            m = -0.25
 
-            flux = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_s[i] * f_s[i] + U_r[i] * f_r[i] ) * self.cell[i, 2] 
-            #blend = 1.0 # 1.75
-            ap[i] += - self.uv_src_blend * flux  # implicit portion
-            bu[i] += (1. - self.uv_src_blend) * flux * u[i]  # explicit portion
-            bv[i] += (1. - self.uv_src_blend) * flux * v[i]
-            bv[i] += 0.5 * (self.R / self.C) * self.rho[i] * (U_r[i] * f_r[i]) * self.v_r * self.cell[i, 2] 
+            if self.uv_src_method == 0:
+                flux = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.cell[i, 2] 
+                ap[i] += - self.uv_src_blend * flux  # implicit portion
+                bu[i] += (1. - self.uv_src_blend) * flux * self.u[i]  # explicit portion
+                bv[i] += (1. - self.uv_src_blend) * flux * self.v[i]
+                bv[i] += 0.5 * (self.R / self.C) * self.v_r * self.rho[i] * (U_r[i] * f_r[i]) * self.cell[i, 2] 
+
+            
+            elif self.uv_src_method == 1:
+                sx = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.u[i] 
+                sy = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.v[i] \
+                    + 0.5 * (self.R / self.C) * self.v_r * self.rho[i] * (U_r[i] * f_r[i]) 
+                #sy = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.v[i] 
+                
+                dsx_dvx =  - 0.5 * (self.R / self.C) * self.rho[i] * ( 
+                - (1. + m) * f_r[i] * self.u[i] **2 / U_r[i]  \
+                + f_r[i] * self.u[i] +  \
+                - (1. + m) * f_s[i] * self.u[i] **2 / U_s[i]  \
+                + f_s[i] * self.u[i] )
+                
+                dsy_dvy =  - 0.5 * (self.R / self.C) * self.rho[i] * ( 
+                - (1. + m) * f_r[i] * self.v[i] * (self.v[i] - self.v_r ) / U_r[i]  \
+                + f_r[i] * self.v[i] +  \
+                - (1. + m) * f_s[i] * self.v[i] * (self.v[i] - self.v_r ) / U_s[i]  \
+                + f_s[i] * self.v[i] ) + \
+                0.5 * (self.R / self.C) * self.rho[i] * self.v_r * ( \
+                - (1. + m) * f_r[i] * (self.v[i] - self.v_r ) / U_r[i] )  
+                         
+                
+                Scx = (sx - dsx_dvx * self.u[i])
+                Scy = (sy - dsy_dvy * self.v[i])   
+                
+                ap[i] += - self.uv_src_blend * dsx_dvx * self.cell[i, 2] 
+                ap2[i] += - self.uv_src_blend * dsy_dvy * self.cell[i, 2] 
+                bu[i] += (1. - self.uv_src_blend) * Scx * self.cell[i, 2]  
+                bv[i] += (1. - self.uv_src_blend) * Scy * self.cell[i, 2] 
+     
+
+            # flux = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_s[i] * f_s[i] + U_r[i] * f_r[i] ) * self.cell[i, 2] 
+            # ap[i] += - self.uv_src_blend * flux  # implicit portion
+            # bu[i] += (1. - self.uv_src_blend) * flux * u[i]  # explicit portion
+            # bv[i] += (1. - self.uv_src_blend) * flux * v[i]
+            # bv[i] += 0.5 * (self.R / self.C) * self.rho[i] * (U_r[i] * f_r[i]) * self.v_r * self.cell[i, 2] 
 
         #self.u_star = bu / self.apu
         #self.v_star = bv / self.apu
         self.u_star = bu / ap
-        self.v_star = bv / ap
+        
+        if self.uv_src_method == 1:
+            self.v_star = bv / ap2
+        else:
+            self.v_star = bv / ap
         #us = bp/ap + b/ap  + (1. - relax_u) * (ap) * u
         return self.u_star, self.v_star
 

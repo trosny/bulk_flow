@@ -25,8 +25,10 @@ gamma : 0.0               # blending coefficient for convective terms
                           # 1 : linear, 0 : first-order upwind
 Nx : 30                   # number of cells in axial direction
 Ny : 40                   # number of cells in circ. direction
-relax_uv : 0.7            # relaxation of zeroth-order momentum
-relax_uv1 : 0.7           # inactive
+relax_mode : 'explicit'   # relation mode of momentum equation solution
+                          # 'explicit' or 'implicit'
+relax_uv : 0.7            # implicit/explicit relaxation of momentum
+relax_uv1 : 0.7           # explicit relaxation of first-order "momentum"
 relax_p : 0.3             # relaxation of zeroth-order pressure
 u_tol : 1.0e-7            # tolerance threshold on axial momentum
 v_tol : 1.0e-7            # tolerance threshold on circ. momentum
