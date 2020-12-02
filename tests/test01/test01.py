@@ -11,6 +11,7 @@ sys.path.append("../../src")
 from seal import seal
 from seal_funcs import read_parameters
 import time
+import cProfile
 
 def main():
     """
@@ -25,7 +26,7 @@ def main():
     
 if __name__ == "__main__":
     start = time.time()
-    main()  
+    main()
     end = time.time()
     print('runtime [s]')
     print(end-start)

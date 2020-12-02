@@ -14,6 +14,7 @@ import mesh
 #from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 
+
 class seal(mesh.mesh):
     '''
     seal is subclass of mesh
