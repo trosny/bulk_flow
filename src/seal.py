@@ -14,7 +14,6 @@ import mesh
 #from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
 
-
 class seal(mesh.mesh):
     '''
     seal is subclass of mesh
@@ -80,11 +79,7 @@ class seal(mesh.mesh):
         self.debug_seal = params.get('debug_seal')
         #
         self.restart_seal()
-
-    # def check_params(self):
-        # ref_dict =  {'gamma','gamma2'}
-        # self.assertRaises(KeyError, lambda        
-
+    
     
     def update_seal(self):
         self._seal_params()
@@ -137,7 +132,7 @@ class seal(mesh.mesh):
         self.rhof = np.ones(self.Nf, dtype=np.float64) * self.rho_init
         self.phi = np.zeros(self.Nf, dtype=np.float64)  # face mass flux
         self.Df = np.zeros(self.Nf, dtype=np.float64) 
-        self.u = np.ones(self.Nc, dtype=np.float64) * self.u_i
+        self.u = np.ones(self.Nc, dtype=np.float32) * self.u_i
         self.v = np.ones(self.Nc, dtype=np.float64) * self.v_i
         self.u_star = np.zeros(self.Nc, dtype=np.float64) 
         self.v_star = np.zeros(self.Nc, dtype=np.float64)
@@ -512,6 +507,7 @@ class seal(mesh.mesh):
                 self.phi[cyclic[idx2, 3]] = - self.phi[i]
                 idx2 += 1
             idx += 1        
+    
     
     def _cc_grad(self, grad_var, var, bvar):
         '''
