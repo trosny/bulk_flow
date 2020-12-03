@@ -826,9 +826,6 @@ class seal(mesh.mesh):
                 raise ValueError(f"uv_src_method = 1 is not implemented for first-order problem, \
                 use uv_src_method = 0")
             
-            
-            
-
      
         if self.relax_mode == 'implicit':
             self.bu1 += (1. - self.relax_uv) * self.apu * self.u1  # relaxation has been applied to ap, i.e. ap = ap / relax
@@ -1227,8 +1224,7 @@ class seal(mesh.mesh):
             self.bp1[i] += (- self.rho[i] * h_psi * self.grad_u[i,0]  \
                     - self.rho[i] * h_psi * self.grad_v[i,1]  \
                     - self.rho[i] * self.v[i] * h_psi_grad  \
-                    + 1j * self.sigma * self.rho[i] * h_psi ) * cell[i,2]  
-            #self.bp1[i] = - self.bp1[i]         
+                    + 1j * self.sigma * self.rho[i] * h_psi ) * cell[i,2]           
             
 
     def _correct_phi(self, phi, rho, rhobc, p_corr, ppbc):

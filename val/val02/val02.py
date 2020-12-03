@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
- val01
+ val02
  - validation case
- - "Long" water seal (incompressible flow)
+ - "Short" water seal (incompressible flow)
  - Kanki and Kawakami, IMechE paper, pp.159-166, 1984
 
 """
@@ -28,20 +28,21 @@ def main():
         return (a + b * x ** 2.0)
     
     # experimental results
-    q_exp = 4634.0 # leakage [cm^3/s]
+    q_exp = 9047.0 # leakage [cm^3/s]   
     
-    K_exp = np.array([[3.30,11.3],[-10.3,3.89]])
-    D_exp = np.array([[147.0,52.9],[-57.7,147.0]])
-    M_exp = np.array([[229.0,16.0],[32.0,214.0]])
+    
+    K_exp = np.array([[3.96,0.664],[-0.337,4.01]])
+    D_exp = np.array([[24.82,12.3],[-10.88,24.46]])
+    M_exp = np.array([[0.0,0.0],[0.0,0.0]])
     K = np.zeros((2,2))
     D = np.zeros((2,2))
     M = np.zeros((2,2))
     
-    Nx = np.array([5, 8, 10, 15, 20, 25])
-    Ny = np.array([10, 15, 20, 30, 40, 50])
+    # Nx = np.array([5, 8, 10, 15, 20, 25, 30])
+    # Ny = np.array([10, 15, 20, 30, 40, 50, 70])
     
-    # Nx = np.array([4, 5, 6, 7])
-    # Ny = np.array([8, 9, 10, 11])
+    Nx = np.array([10])
+    Ny = np.array([20])
    
     
     # arrays for plotting
@@ -52,7 +53,7 @@ def main():
     Mxx_p = np.zeros(Nx.size)
     q_p = np.zeros(Nx.size)
     
-    param = read_parameters('Kanki01_input.yaml')
+    param = read_parameters('Kanki02_input.yaml')
     s = seal(param)
     
     #pert_dirs = ['X','Y'] # for testing symmetry
@@ -90,9 +91,7 @@ def main():
                 fy[idx_freq] = s.fy1
                 print(freq)
 
-            
-            
-            
+
             # curve-fit real and imaginary parts of forces
             # fitting coefficients are the dynamic coefficients    
             px_r,cov = optimize.curve_fit(quad_func, pertFreq, np.real(fx), p0=[0.0, 0.0]) 
@@ -128,23 +127,28 @@ def main():
         Mxx_p[idx] = M[0,0]
 
 
-    
-    # print('---------------')
-    # print('--predicted--')
-    # print(K)
-    # print('--Exp.--')
-    # print(K_exp)
-    # print('---------------')
-    # print('--predicted--')
-    # print(D)
-    # print('--Exp.--')
-    # print(D_exp)
-    # print('---------------')
-    # print('--predicted--')
-    # print(M)
-    # print('--Exp.--')
-    # print(M_exp)
-    # print('---------------')
+  
+    print('----q [cm^3/s]-------')
+    print('--predicted--')
+    print(q_p[0])
+    print('--Exp.--')
+    print(q_exp)  
+    print('----K [MN/m]-------')
+    print('--predicted--')
+    print(K)
+    print('--Exp.--')
+    print(K_exp)
+    print('----D [kN.s/m]-------')
+    print('--predicted--')
+    print(D)
+    print('--Exp.--')
+    print(D_exp)
+    print('----M [kg]-------')
+    print('--predicted--')
+    print(M)
+    print('--Exp.--')
+    print(M_exp)
+    print('---------------')
     
     
     # if param["pert_dir"] == 'X':
@@ -187,59 +191,59 @@ def main():
 
           
  
-    plt.figure()
-    plt.plot(Nx*Ny, q_p)
-    plt.axhline(y=q_exp, color='r', linestyle='-')
-    plt.xlabel(r'$N_x \times N_y$')
-    plt.ylabel(r'$Leakage [cm$^3$/s]')   
-    plt.tight_layout()
-    plt.savefig('q_grid.png')
-    plt.close()  
+    # plt.figure()
+    # plt.plot(Nx*Ny, q_p)
+    # plt.axhline(y=q_exp, color='r', linestyle='-')
+    # plt.xlabel(r'$N_x \times N_y$')
+    # plt.ylabel(r'$Leakage [cm$^3$/s]')   
+    # plt.tight_layout()
+    # plt.savefig('q_grid.png')
+    # plt.close()  
  
-    plt.figure()
-    plt.plot(Nx*Ny, Kxx_p)
-    plt.axhline(y=np.mean(K_exp[0,0]), color='r', linestyle='-')
-    plt.xlabel(r'$N_x \times N_y$')
-    plt.ylabel(r'$K_{xx}=K_{yy}$ [MN/m]')   
-    plt.tight_layout()
-    plt.savefig('Kxx_grid.png')
-    plt.close()  
+    # plt.figure()
+    # plt.plot(Nx*Ny, Kxx_p)
+    # plt.axhline(y=np.mean(K_exp[0,0]), color='r', linestyle='-')
+    # plt.xlabel(r'$N_x \times N_y$')
+    # plt.ylabel(r'$K_{xx}=K_{yy}$ [MN/m]')   
+    # plt.tight_layout()
+    # plt.savefig('Kxx_grid.png')
+    # plt.close()  
     
-    plt.figure()
-    plt.plot(Nx*Ny, Kxy_p)
-    plt.axhline(y=np.mean(K_exp[0,1]), color='r', linestyle='-')
-    plt.xlabel(r'$N_x \times N_y$')
-    plt.ylabel(r'$K_{xy}=-K_{yx}$ [MN/m]')
-    plt.tight_layout()
-    plt.savefig('Kxy_grid.png')
-    plt.close()  
+    # plt.figure()
+    # plt.plot(Nx*Ny, Kxy_p)
+    # plt.axhline(y=np.mean(K_exp[0,1]), color='r', linestyle='-')
+    # plt.xlabel(r'$N_x \times N_y$')
+    # plt.ylabel(r'$K_{xy}=-K_{yx}$ [MN/m]')
+    # plt.tight_layout()
+    # plt.savefig('Kxy_grid.png')
+    # plt.close()  
     
-    plt.figure()
-    plt.plot(Nx*Ny, Dxx_p)
-    plt.axhline(y=np.mean(D_exp[0,0]), color='r', linestyle='-')
-    plt.xlabel(r'$N_x \times N_y$')
-    plt.ylabel(r'$D_{xx}=D_{yy}$ [kN.s/m]')
-    plt.tight_layout()
-    plt.savefig('Dxx_grid.png')
-    plt.close()
+    # plt.figure()
+    # plt.plot(Nx*Ny, Dxx_p)
+    # plt.axhline(y=np.mean(D_exp[0,0]), color='r', linestyle='-')
+    # plt.xlabel(r'$N_x \times N_y$')
+    # plt.ylabel(r'$D_{xx}=D_{yy}$ [kN.s/m]')
+    # plt.tight_layout()
+    # plt.savefig('Dxx_grid.png')
+    # plt.close()
     
-    plt.figure()
-    plt.plot(Nx*Ny, Dxy_p)
-    plt.axhline(y=np.mean(D_exp[0,1]), color='r', linestyle='-')
-    plt.xlabel(r'$N_x \times N_y$')
-    plt.ylabel(r'$D_{xy}=-D_{yx}$ [kN.s/m]')
-    plt.tight_layout()
-    plt.savefig('Dxy_grid.png')
-    plt.close()
+    # plt.figure()
+    # plt.plot(Nx*Ny, Dxy_p)
+    # plt.axhline(y=np.mean(D_exp[0,1]), color='r', linestyle='-')
+    # plt.xlabel(r'$N_x \times N_y$')
+    # plt.ylabel(r'$D_{xy}=-D_{yx}$ [kN.s/m]')
+    # plt.tight_layout()
+    # plt.savefig('Dxy_grid.png')
+    # plt.close()
     
-    plt.figure()
-    plt.plot(Nx*Ny, Mxx_p)
-    plt.axhline(y=np.mean(M_exp[0,0]), color='r', linestyle='-')
-    plt.xlabel(r'$N_x \times N_y$')
-    plt.ylabel(r'$M_{xx}=M_{yy}$ [kg]')
-    plt.tight_layout()
-    plt.savefig('Mxx_grid.png')
-    plt.close()
+    # plt.figure()
+    # plt.plot(Nx*Ny, Mxx_p)
+    # plt.axhline(y=np.mean(M_exp[0,0]), color='r', linestyle='-')
+    # plt.xlabel(r'$N_x \times N_y$')
+    # plt.ylabel(r'$M_{xx}=M_{yy}$ [kg]')
+    # plt.tight_layout()
+    # plt.savefig('Mxx_grid.png')
+    # plt.close()
       
       
     # generate figures of forces as a function of perturbation frequency
