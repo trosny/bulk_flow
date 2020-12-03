@@ -32,6 +32,8 @@ class seal(mesh.mesh):
                      'rpm_inlet','p_exit','xi_exit','friction','rotor_roughness',\
                      'stator_roughness','whirl_f','read_restart','save_restart',\
                      'print_residuals','print_output','pert_dir','debug_seal'}
+                     
+        ref_dict2 = {'f_blasius_rotor_m','f_blasius_rotor_n'}            
         # simple check if required parameters are present, throw KeyError
         # if not. 
         # TODO : - add type checking
@@ -39,6 +41,13 @@ class seal(mesh.mesh):
         for key in ref_dict:
             if key not in params:
                 raise KeyError(f"'{key}' missing from input parameter dictionary")
+        
+        if params['friction'] == 'blasius':        
+            for key in ref_dict2:
+                if key not in params:
+                    print(f"'{key}' not specified, using default value")
+                    params['f_blasius_rotor_n'] = 0.079
+                    params['f_blasius_rotor_m'] = -0.25
         
         # additional attributes
         self.gamma = params.get('gamma')
@@ -68,6 +77,8 @@ class seal(mesh.mesh):
         self.xi_exit =  params.get('xi_exit')
 
         self.friction = params.get('friction')
+        self.rotor_n = params.get('f_blasius_rotor_n')
+        self.rotor_m = params.get('f_blasius_rotor_m')
         self.rotor_roughness = params.get('rotor_roughness')
         self.stator_roughness = params.get('stator_roughness')
         self.whirl_f = params.get('whirl_f')    
@@ -579,11 +590,11 @@ class seal(mesh.mesh):
         Re_s = self.rho_s * self.rho * U_s * self.u_s * self.hc * self.C / self.mu_s
 
         if self.friction == 'blasius':
-            f_r = f_blasius(Re_r)
-            f_s = f_blasius(Re_s)
-        elif self.friction == 'hirs':
-            f_r = f_hirs(Re_r)
-            f_s = f_hirs(Re_s)
+            f_r = f_blasius(Re_r, self.rotor_n, self.rotor_m)
+            f_s = f_blasius(Re_s, self.rotor_n, self.rotor_m)
+        # elif self.friction == 'hirs':
+            # f_r = f_hirs(Re_r)
+            # f_s = f_hirs(Re_s)
         elif self.friction == 'haaland':
             f_r = f_haaland(Re_r , self.rotor_roughness * 2.0 * self.C * np.ones_like(self.hc), self.hc * self.C)
             f_s = f_haaland(Re_s , self.stator_roughness * 2.0 * self.C * np.ones_like(self.hc), self.hc * self.C)
@@ -688,7 +699,7 @@ class seal(mesh.mesh):
 
         U_r, U_s, f_r, f_s = self._compute_friction(self.u, self.v)
         
-        m = -0.25
+        m = self.rotor_m
 
         # source terms
         for i in range(self.Nc):
@@ -768,7 +779,7 @@ class seal(mesh.mesh):
 
         U_r, U_s, f_r, f_s = self._compute_friction(self.u, self.v)
         
-        m = -0.25
+        m = self.rotor_m
 
         # source terms
         for i in range(self.Nc):
@@ -925,7 +936,7 @@ class seal(mesh.mesh):
             # friction factor formulation
             
             
-            m = -0.25
+            m = self.rotor_m
 
             if self.uv_src_method == 0:
                 flux = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.cell[i, 2] 

@@ -12,12 +12,16 @@ ey : 0.0                  # rotor relative eccentricity in Y-dir. [-]
 angX : 0.000              # inactive, rotor angular rotation about X [rad]
 angY : 0.000              # inactive, rotor angular rotation about Y [rad]
 p_in : 14.7e+05           # inlet total pressure [Pa]
-xi_in : 0.25               # inlet loss coefficient [-]
-rpm_inlet : -1000.0           # inlet rotational speed [rpm]
+xi_in : 0.6               # inlet loss coefficient [-]
+rpm_inlet : -400.0           # inlet rotational speed [rpm]
 p_exit : 4.9e+05          # exit total pressure [Pa]
 xi_exit : 1.0             # exit recoviery coefficient
 # friction choices : 'blasius', 'hirs', 'haaland', 'universal'
 friction : 'blasius' # 
+f_blasius_rotor_n : 0.07
+f_blasius_rotor_m : -0.25
+#f_blasius_stator_n : 0.079
+#f_blasius_stator_m : -0.25
 rotor_roughness : 0.0     # rotor relative roughness [-]
 stator_roughness : 0.0    # stator relative roughness [-]
 # numerical

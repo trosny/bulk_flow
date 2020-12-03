@@ -19,15 +19,15 @@ def k_frene(Re):
         k_c[i]= 12.0 + 0.0044 * Re[i] ** 0.96
     return k_p, k_c
 
-def f_blasius(Re):
+def f_blasius(Re, n, m):
     '''
     Blasius fanning friction factor / skin friction coefficient
     Matches Black/Yamada equation exactly in the absence of rotation, i.e. the rotational
     Reynolds number is zero.
     Valid for smooth pipes for Re up to 100,000
     '''
-    n = 0.079  # 0.316 / 4.0
-    m = -0.25
+    n = n  # 0.316 / 4.0
+    m = m
     f = np.zeros_like(Re)
     for i, val in enumerate(Re):
         f[i] = n * ( Re[i] ) ** m
@@ -42,6 +42,8 @@ def f_hirs(Re):
     See eqn.6f on p. 140 in Hirs 1973
     See n and m values following eqn. 13 b on p. 143 in Hirs 1973
     See also Table 1 in Hirs 1970 thesis
+    
+    Obsolete -- Can just use blasius and with change to m and n coefficients
     '''
     n = 0.066
     m = -0.25

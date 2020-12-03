@@ -41,7 +41,7 @@ def main():
     # Nx = np.array([5, 8, 10, 15, 20, 25, 30])
     # Ny = np.array([10, 15, 20, 30, 40, 50, 70])
     
-    Nx = np.array([10])
+    Nx = np.array([5])
     Ny = np.array([20])
    
     
@@ -59,7 +59,7 @@ def main():
     #pert_dirs = ['X','Y'] # for testing symmetry
     pert_dirs = ['X']
     #pertFreq = np.array([200.0])
-    pertFreq = np.array([0.0, 25.0, 50.0, 75.0, 100.0])
+    pertFreq = np.array([0.0, 25.0, 50.0, 100.0])
     fx = np.zeros(pertFreq.size, dtype=np.complex128)
     fy = np.zeros(pertFreq.size, dtype=np.complex128)
     
