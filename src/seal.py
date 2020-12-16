@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-"""
-"""
 
 #import sys
 import numpy as np
@@ -9,7 +6,7 @@ from scipy.sparse.linalg import spsolve, spilu, LinearOperator, gmres, cg, bicg,
 #import yaml
 import time
 from seal_funcs import div, k_frene, f_blasius, f_hirs, f_haaland, f_moody, f_universal, \
-    forces, sparse_to_full, read_parameters
+     forces, sparse_to_full, read_parameters
 import mesh
 #from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
@@ -20,8 +17,13 @@ class seal(mesh.mesh):
     seal is subclass of mesh
     inherit all attributes and methods from mesh using 'super' built-in method
     and pass 'params' when init base class
+    
+    
     '''
     def __init__(self, params):
+        """
+        init docstring
+        """
         super(seal, self).__init__(params)
         #mesh(self).__init__(params)
         
@@ -38,9 +40,10 @@ class seal(mesh.mesh):
         # if not. 
         # TODO : - add type checking
         #        - set default value to parameter if not present
+        
         for key in ref_dict:
             if key not in params:
-                raise KeyError(f"'{key}' missing from input parameter dictionary")
+                raise KeyError(f'"{key}" missing from input parameter dictionary')
         
         if params['friction'] == 'blasius':        
             for key in ref_dict2:
@@ -179,6 +182,9 @@ class seal(mesh.mesh):
       
 
     def solve_zeroth(self):
+        '''
+        Member function to solve zeroth order problem
+        '''
         outer_iter = 0
         m_error = 1.0
         u_error = 1.0
@@ -834,8 +840,9 @@ class seal(mesh.mesh):
                 
                 
             elif self.uv_src_method == 1:
+                #pass
                 raise ValueError(f"uv_src_method = 1 is not implemented for first-order problem, \
-                use uv_src_method = 0")
+                 use uv_src_method = 0")
             
      
         if self.relax_mode == 'implicit':
@@ -1372,23 +1379,23 @@ class seal(mesh.mesh):
             plt.close()
     
     
-def main():
-    """
-    to call run *.py file containing class as script
-    """
-    # output filename
-    param = read_parameters('Kanki01_input.yaml')
-    s = seal(param)
-    s.solve_zeroth()
-    s.plot_res()
+# def main():
+    # """
+    # to call run *.py file containing class as script
+    # """
+    # # output filename
+    # param = read_parameters('Kanki01_input.yaml')
+    # s = seal(param)
+    # s.solve_zeroth()
+    # s.plot_res()
     
     
 
 
-if __name__ == "__main__":
-    start = time.time()
-    main()  
-    end = time.time()
-    print('runtime [s]')
-    print(end-start)
+# if __name__ == "__main__":
+    # start = time.time()
+    # main()  
+    # end = time.time()
+    # print('runtime [s]')
+    # print(end-start)
         

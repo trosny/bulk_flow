@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-"""
+# seal_funcs
 
 import numpy as np
 import yaml
@@ -101,8 +100,8 @@ def f_moody(Re,ar,h):
 def f_universal(Re,ar,h):
     '''
     Universal friction factor formula
-      Artiles, ICYl/IFACE documentation, NASA CR 2004-213199 VOL 4
-      Zirkelback and San Andres, 1996
+    Artiles, ICYl/IFACE documentation, NASA CR 2004-213199 VOL 4
+    Zirkelback and San Andres, 1996
     Re based on h
     #
     Reynolds length scale based on hydraulic diameter, 2*h expected
