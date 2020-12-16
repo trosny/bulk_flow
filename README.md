@@ -14,21 +14,39 @@ followed by
 	conda activate bulk_flow_env
 ```
 
-# Directory contents
+# Directory contents, tree -L 2
 ```
 ├── LICENSE.txt
 ├── README.md
 ├── docs
-│   └── pres06Nov2020.pdf
+│   ├── README.md
+│   ├── bcs.pdf
+│   ├── bf_summary.pdf
+│   ├── bf_summary.tex
+│   ├── conf.py
+│   ├── index.rst
+│   ├── pert_bulk_incomp_sympy.ipynb
+│   ├── pert_bulk_incomp_sympy.pdf
+│   ├── pres03Dec2020.pdf
+│   ├── pres06Nov2020.pdf
+│   └── pres27Nov2020.pdf
 ├── env.yml
 ├── src
 │   ├── mesh.py
 │   ├── seal.py
-│   └── seal_funcs.py
-└── tests
-    └── test01
-        ├── Kanki01_input.yaml
-        └── test01.py
+│   ├── seal_funcs.py
+├── tests
+│   ├── test01
+│   ├── test02
+│   ├── test03
+│   ├── test04
+│   ├── test05
+│   ├── test06
+│   ├── test07
+│   └── test08
+└── val
+    ├── val01
+    └── val02
 ```
 
 \tests

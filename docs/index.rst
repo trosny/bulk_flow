@@ -8,8 +8,7 @@ Documentation for SealDyn
 
 .. toctree::
    :maxdepth: 4
-   :caption: Contents:
-
+   :caption: Contents: 
 
 .. automodule:: seal_funcs
    :members:     
@@ -18,6 +17,12 @@ Documentation for SealDyn
    :members:
    
 .. autoclass:: seal.seal
+   :members:
+
+Tests
+================== 
+ 
+.. automodule:: test01
    :members:   
 
 Indices and tables

@@ -17,6 +17,10 @@ import sys
 #sys.path.insert(0, os.path.abspath('../..'))
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.append("../src")
+# add test subdirectories to search path
+for (dirpath, dirnames, filenames) in os.walk("../tests/"):
+    #print(dirpath)
+    sys.path.append(dirpath)
 
 
 # -- Project information -----------------------------------------------------

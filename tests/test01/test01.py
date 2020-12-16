@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """
- test01 of seal class
- baseline test of zeroth-order solution
-   - coarse grid
-   - "standard" relaxation factors
+test01 of seal class
+baseline test of zeroth-order solution
+- coarse grid
+- "standard" relaxation factors
 """
+    
 import sys
 sys.path.append("../../src")
 
@@ -13,9 +14,12 @@ from seal_funcs import read_parameters
 import time
 import cProfile
 
-def main():
+def run_example():
     """
-    to call run *.py file containing class as script
+    test01 of seal class
+    baseline test of zeroth-order solution
+    - coarse grid
+    - "standard" relaxation factors
     """
     # output filename
     param = read_parameters('Kanki01_input.yaml')
@@ -23,10 +27,9 @@ def main():
     s.solve_zeroth()
     s.plot_res()
     
-    
 if __name__ == "__main__":
     start = time.time()
-    main()
+    run_example()
     end = time.time()
     print('runtime [s]')
-    print(end-start)
+    print(end-start)    
