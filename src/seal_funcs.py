@@ -11,6 +11,26 @@ def div(n, d):
 def k_frene(Re):
     '''
     friction 'k' parameters from Frene, Arghir, and Constantinescu 2006
+    
+    sample numpy style doc
+    
+    Parameters
+    ----------
+    foo : int, float, str, or tf.Tensor
+        The foo to bar, which has a really really, reeeeeeeeeeeeeeeeally
+        unnecessarily long multiline description.
+    bar : str
+        Bar to use on foo
+        :
+        :class: `numpy.ndarray`
+    baz : float
+        Baz to frobnicate
+
+    Returns
+    -------
+    float
+        The frobnicated baz
+    
     '''
     k_p = np.zeros_like(Re); k_c = np.zeros_like(Re)
     for i, val in enumerate(Re):

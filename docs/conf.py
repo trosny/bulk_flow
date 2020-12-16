@@ -44,7 +44,21 @@ release = u'0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon', # for numpy or google docstrings
+    'sphinx.ext.intersphinx',
+]
+
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/', None),
+    'numpy': ('http://docs.scipy.org/doc/numpy/', None)
+}
+
+
 autoclass_content = 'both'
 
 # Add any paths that contain templates here, relative to this directory.

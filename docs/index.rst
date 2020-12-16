@@ -1,7 +1,4 @@
-.. sealdoc documentation master file, created by
-   sphinx-quickstart on Thu Dec  3 06:29:03 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. SealDyn documentation master file
 
 Documentation for SealDyn
 =====================================
