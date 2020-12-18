@@ -52,6 +52,13 @@ class seal(mesh.mesh):
                     params['f_blasius_rotor_n'] = 0.079
                     params['f_blasius_rotor_m'] = -0.25
         
+        # if params['energy_mode'] == 0:        
+            # for key in ref_dict2:
+                # if key not in params:
+                    # print(f"'{key}' not specified, using default value")
+                    # params['f_blasius_rotor_n'] = 0.079
+                    # params['f_blasius_rotor_m'] = -0.25
+        
         # additional attributes
         self.gamma = params.get('gamma')
         self.gamma1 = params.get('gamma1')
@@ -92,6 +99,23 @@ class seal(mesh.mesh):
         self.plot_figs = params.get('print_output')
         self.pert_dir = params.get('pert_dir') 
         self.debug_seal = params.get('debug_seal')
+        
+        # energy
+        self.energy_mode = params.get('energy_mode')
+        self.T_s = params.get('T_s')
+        self.T_i = params.get('T_i')
+        self.T_o = params.get('T_o')
+        self.c_p = params.get('c_p')
+        self.h_r = params.get('h_r')
+        self.h_s = params.get('h_s')
+        self.T_rotor = params.get('T_rotor')
+        self.T_stator = params.get('T_stator')
+        self.e_tol = params.get('e_tol')
+        
+        if self.energy_mode == 1:
+            self.ht_flag = True
+        else:
+            self.ht_flag = False
         #
         self.restart_seal()
     
@@ -125,6 +149,15 @@ class seal(mesh.mesh):
         self.v_r = self.v_rotor / self.u_s
         self.Re = self.rho_s * self.u_s * self.R / self.mu_s # Reynolds number 
         self.sigma = self.whirl_f * self.R / self.u_s
+        # energy
+        self.T_i = self.T_i / self.T_s
+        self.T_o = self.T_o / self.T_s
+        self.T_rotor = self.T_rotor / self.T_s
+        self.T_stator = self.T_stator / self.T_s
+        self.Ec = self.u_s ** 2 / (self.c_p * self.T_s)
+        self.h_r = self.h_r / (self.rho_s * self.c_p * self.T_s * self.u_s)
+        self.h_s = self.h_s / (self.rho_s * self.c_p * self.T_s * self.u_s)
+       
         
     def _init_var_arrays(self): 
         '''initialize variable arrays
@@ -164,6 +197,13 @@ class seal(mesh.mesh):
         self.grad_v = np.zeros([self.Nc, 2], dtype=np.float64)
         self.grad_p_corr = np.zeros([self.Nc, 2], dtype=np.float64)
         
+        # energy
+        self.t = np.ones(self.Nc, dtype=np.float32) * self.T_s
+        self.tbc = np.zeros(self.Nfbc, dtype=np.float64)
+        self.At = lil_matrix((self.Nc, self.Nc), dtype=np.float64)
+        self.apt = np.zeros(self.Nc, dtype=np.float64)
+        self.bt = np.zeros(self.Nc, dtype=np.float64)
+        
         # first order problem            
         self.u1 = np.zeros(self.Nc, dtype=np.complex128)
         self.v1 = np.zeros(self.Nc, dtype=np.complex128)
@@ -179,6 +219,8 @@ class seal(mesh.mesh):
         self.p1_corr_bc = np.zeros(self.Nfbc, dtype=np.complex128) 
         self.grad_p1 = np.zeros([self.Nc, 2], dtype=np.complex128)
         self.grad_p1_corr = np.zeros([self.Nc, 2], dtype=np.complex128)
+        
+        
       
 
     def solve_zeroth(self):
@@ -189,8 +231,9 @@ class seal(mesh.mesh):
         m_error = 1.0
         u_error = 1.0
         v_error = 1.0
+        e_error = 1.0
             
-        while (outer_iter < self.max_it and ( m_error > self.m_tol or u_error > self.u_tol or v_error > self.u_tol )  ):
+        while (outer_iter < self.max_it and ( m_error > self.m_tol or u_error > self.u_tol or v_error > self.u_tol or e_error > self.e_tol )  ):
         
             self.grad_p = self._cc_grad(self.grad_p, self.press, self.pbc)
             # coefficient matrix A and ap are same for u and v momentum, evaluate once to improve efficiency
@@ -270,6 +313,10 @@ class seal(mesh.mesh):
                 self._update_zeroth_bcs()
                       
             
+            #energy
+            self._setup_zeroth_energy()
+            self.t = spsolve(self.At.tocsr(), self.bt)
+            
             # inlet and outlet mass flux
             m_out = np.sum( self.phi[self.Nfstart[1]:self.Nfstart[2]] )
             m_in = np.sum( self.phi[self.Nfstart[3]:self.Nf] )
@@ -280,11 +327,12 @@ class seal(mesh.mesh):
             else:
                 v_error = np.sum( np.abs( self.bv - self.A.dot(self.v) ) ) 
             m_error = np.sum(np.abs(self.bp) )
+            e_error = np.sum( np.abs( self.bt - self.At.dot(self.t) ) )
             
             outer_iter += 1
             if self.print_residuals:
-                print("{a:g} {b:g} {c:g} {d:g} {e:g} {f:g} ".format(a=outer_iter, b=m_error, c=u_error, d=v_error, e=m_in,
-                                                                    f=m_out))
+                print("{a:g} {b:g} {c:g} {d:g} {e:g} {f:g} {g:g} ".format(a=outer_iter, b=m_error, c=u_error, d=v_error, e=e_error, f=m_in,
+                                                                    g=m_out))
         
         ps_in = np.mean( self.pbc[(self.Nfstart[3] - self.Nfint):self.Nfbc] )
         ps_in = ps_in * self.rho_s * self.u_s ** 2
@@ -376,6 +424,7 @@ class seal(mesh.mesh):
             self.vbc[idx] = 0.0
             self.pbc[idx] = 0.0
             self.rhobc[idx] = self.rho_init
+            self.tbc[idx] = self.T_s
             idx += 1
         # outflow (right)
         for i in range(self.Nfstart[1], self.Nfstart[2]):
@@ -383,6 +432,7 @@ class seal(mesh.mesh):
             self.vbc[idx] = 0.0
             self.pbc[idx] = self.p_e
             self.rhobc[idx] = self.rho_init
+            self.tbc[idx] = self.T_o
             idx += 1
         # cycle2 (top)
         for i in range(self.Nfstart[2], self.Nfstart[3]):
@@ -390,6 +440,7 @@ class seal(mesh.mesh):
             self.vbc[idx] = 0.0
             self.pbc[idx] = 0.0
             self.rhobc[idx] = self.rho_init
+            self.tbc[idx] = self.T_s
             idx += 1
         # inflow (left)
         for i in range(self.Nfstart[3], self.Nf):
@@ -397,6 +448,7 @@ class seal(mesh.mesh):
             self.vbc[idx] = self.v_i
             self.pbc[idx] = self.p_i
             self.rhobc[idx] = self.rho_init
+            self.tbc[idx] = self.T_i
             idx += 1
 
     def _update_zeroth_bcs(self):
@@ -415,12 +467,13 @@ class seal(mesh.mesh):
                 area = np.sqrt(sf[i, 0] ** 2 + sf[i, 1] ** 2) * hf[i]
                 self.ubc[idx] = phi[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
                 self.pbc[idx] = self.p_i - 0.5 * (1.0 + self.xi_in) * np.abs(self.ubc[idx]) ** 2
+                #self.tbc[idx] = self.T_i
             if self.bc_type[idx] == 2:  # outlet
                 area = np.sqrt(sf[i, 0] ** 2 + sf[i, 1] ** 2) * hf[i]
                 self.ubc[idx] =  phi[i] * (cn[i, 0] / np.abs(cn[i, 0])) / area
                 self.vbc[idx] = self.v[p]
                 self.pbc[idx] = self.p_e - 0.5 * (1.0 - self.xi_exit) * np.abs(self.ubc[idx]) ** 2  # total pressure bc
-                
+                #self.tbc[idx] = self.T_o
             if self.bc_type[idx] == 0:  # solid wall
                 self.pbc[idx] = self.pbc[idx] + self.relax_p * self.ppbc[idx]
             if self.bc_type[idx] == 3 or self.bc_type[idx] == 4:  # cyclic bcs
@@ -525,8 +578,7 @@ class seal(mesh.mesh):
                 self.phi[cyclic[idx2, 3]] = - self.phi[i]
                 idx2 += 1
             idx += 1        
-    
-    
+       
     def _cc_grad(self, grad_var, var, bvar):
         '''
         evaluate cell-center gradient, Green-Gauss
@@ -764,6 +816,142 @@ class seal(mesh.mesh):
             self.bu += (1. - self.relax_uv) * self.apu * self.u  # relaxation has been applied to ap, i.e. ap = ap / relax
             self.bv += (1. - self.relax_uv) * self.apv * self.v
 
+    def _setup_zeroth_energy(self):
+        '''
+        Coefficient matrix and source terms for zeroth-order energy equation
+        '''
+        owner = self.owner
+        neighbor = self.neighbor
+        gf = self.gf
+        phi = self.phi
+        cyclic = self.cyclic
+        hc = self.hc
+        
+        self.At = self.At * 0.0
+        self.bt = self.bt * 0.0
+        self.apt = self.apt * 0.0
+
+        # fluxes
+        for i in range(self.Nfint):
+            p = owner[i]
+            nb = neighbor[i]
+            # convective fluxes
+            # first-order upwind
+            #fluxp = 0.5 * phi[i] * (np.sign(phi[i]) + 1.)
+            #fluxnb = -0.5 * phi[i] * (np.sign(phi[i]) - 1.)
+            # mixed upwind/linear
+            fluxp = phi[i] * ((1. - self.gamma) * 0.5 * (np.sign(phi[i]) + 1.) + self.gamma * gf[i])
+            fluxnb = phi[i] * ((-1. + self.gamma) * 0.5 * (np.sign(phi[i]) - 1.) + self.gamma * (1. - gf[i]))
+            # owner
+            self.At[p, p] += fluxp
+            self.At[p, nb] += fluxnb
+            # neighbor
+            self.At[nb, p] += -fluxp
+            self.At[nb, nb] += -fluxnb
+                        
+
+        # convective fluxes at inflow and outflow, diffusive fluxes at solid walls
+        idx = 0
+        idx2 = 0
+        for i in range(self.Nfstart[0], self.Nf):
+            p = owner[i]
+            if self.bc_type[idx] == 1:  # inflow
+                self.bt[p] += - phi[i] * self.tbc[idx]   # convective flux
+            if self.bc_type[idx] == 2:  # outflow
+                #bu[p] +=  - phi[i] * ubc[idx]  # convective flux
+                #bv[p] +=  - phi[i] * vbc[idx]  # convective flux
+                self.At[p, p] +=  phi[i]  
+            if self.bc_type[idx] == 0:  # solid wall
+                pass
+            if self.bc_type[idx] == 4:  # cyclic 2
+                nb = cyclic[idx2, 2]
+                # convective
+                fluxp = phi[i] * ((1. - self.gamma) * 0.5 * (np.sign(phi[i]) + 1) + self.gamma * gf[i]) 
+                fluxnb = phi[i] * ((-1. + self.gamma) * 0.5 * (np.sign(phi[i]) - 1) + self.gamma * (1. - gf[i])) 
+
+                self.At[p, p] += fluxp
+                self.At[p, nb] += fluxnb
+                # neighbor
+                self.At[nb, p] += -fluxp
+                self.At[nb, nb] += -fluxnb               
+
+                idx2 += 1
+
+            idx += 1
+            
+        #self.A2 = self.A
+
+        U_r, U_s, f_r, f_s = self._compute_friction(self.u, self.v)
+        
+        m = self.rotor_m
+
+        # source terms
+        for i in range(self.Nc):
+
+            self.bt[i] += 0.5 * self.Ec * self.R * self.v_r * self.hc[i] * self.grad_p[i,1] * self.cell[i, 2]
+            self.bt[i] += (self.R / self.C) * self.Ec * self.rho[i] * (0.25 * self.v_r  * self.v[i] ** 2. * f_s[i] -\
+                            0.25 * self.v_r  * (self.v[i] - self.v_r)**2 * f_r[i] + \
+                            0.5 * self.u[i] ** 2. * f_r[i] * U_r[i] + \
+                            0.5 * self.u[i] ** 2. * f_s[i] * U_s[i] + \
+                            0.5 * self.v[i] ** 2. * f_r[i] * U_r[i] + \
+                            0.5 * self.v[i] ** 2. * f_s[i] * U_s[i] - \
+                            0.5 * self.v[i] * self.v_r * f_r[i] * U_r[i] ) * self.cell[i, 2]
+            
+            # convective ht with rotor and stator surfaces
+            if self.ht_flag:
+                self.bt[i] +=   (self.R / self.C) * ( self.h_s * (self.T_stator - self.t[i]) +\
+                            self.h_r * (self.T_rotor - self.t[i]) ) * self.cell[i, 2]
+
+            # if self.uv_src_method == 0:
+                # flux = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.cell[i, 2] 
+                # self.A[i, i] += - self.uv_src_blend * flux  # implicit portion
+                # self.A2[i, i] += - self.uv_src_blend * flux  # implicit portion
+                # self.bu[i] += (1. - self.uv_src_blend) * flux * self.u[i]  # explicit portion
+                # self.bv[i] += (1. - self.uv_src_blend) * flux * self.v[i]
+                # self.bv[i] += 0.5 * (self.R / self.C) * self.v_r * self.rho[i] * (U_r[i] * f_r[i]) * self.cell[i, 2] 
+
+            
+            # elif self.uv_src_method == 1:
+                # sx = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.u[i] 
+                # sy = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.v[i] \
+                    # + 0.5 * (self.R / self.C) * self.v_r * self.rho[i] * (U_r[i] * f_r[i]) 
+                # #sy = - 0.5 * (self.R / self.C) * self.rho[i] * ( U_r[i] * f_r[i] + U_s[i] * f_s[i]) * self.v[i] 
+                
+                # dsx_dvx =  - 0.5 * (self.R / self.C) * self.rho[i] * ( 
+                # - (1. + m) * f_r[i] * self.u[i] **2 / U_r[i]  \
+                # + f_r[i] * self.u[i] +  \
+                # - (1. + m) * f_s[i] * self.u[i] **2 / U_s[i]  \
+                # + f_s[i] * self.u[i] )
+                
+                # dsy_dvy =  - 0.5 * (self.R / self.C) * self.rho[i] * ( 
+                # - (1. + m) * f_r[i] * self.v[i] * (self.v[i] - self.v_r ) / U_r[i]  \
+                # + f_r[i] * self.v[i] +  \
+                # - (1. + m) * f_s[i] * self.v[i] * (self.v[i] - self.v_r ) / U_s[i]  \
+                # + f_s[i] * self.v[i] ) + \
+                # 0.5 * (self.R / self.C) * self.rho[i] * self.v_r * ( \
+                # - (1. + m) * f_r[i] * (self.v[i] - self.v_r ) / U_r[i] )  
+                         
+                
+                # Scx = (sx - dsx_dvx * self.u[i])
+                # Scy = (sy - dsy_dvy * self.v[i])   
+                
+                # self.A[i, i] += - self.uv_src_blend * dsx_dvx * self.cell[i, 2] 
+                # self.A2[i,i] += - self.uv_src_blend * dsy_dvy * self.cell[i, 2] 
+                # self.bu[i] += (1. - self.uv_src_blend) * Scx * self.cell[i, 2]  
+                # self.bv[i] += (1. - self.uv_src_blend) * Scy * self.cell[i, 2] 
+                # #self.bv[i] += 0.5 * (self.R / self.C) * self.v_r * self.rho[i] * (U_r[i] * f_r[i]) * self.cell[i, 2] 
+
+            # if self.relax_mode == 'implicit':
+                # self.A[i, i] = self.A[i, i] / self.relax_uv  # relax main diagonal
+                # self.A2[i, i] = self.A2[i, i] / self.relax_uv
+        
+
+        self.apt = self.A.diagonal(0) #ap / param['relax_uv']
+        
+        # if self.relax_mode == 'implicit':
+            # self.bu += (1. - self.relax_uv) * self.apu * self.u  # relaxation has been applied to ap, i.e. ap = ap / relax
+            # self.bv += (1. - self.relax_uv) * self.apv * self.v
+
     def _setup_first_uv(self):
         '''
         Source terms for first-order momentum equations
@@ -999,8 +1187,7 @@ class seal(mesh.mesh):
             self.v_star = bv / ap
         #us = bp/ap + b/ap  + (1. - relax_u) * (ap) * u
         return self.u_star, self.v_star
-
-    
+   
     def _cc_to_int_faces(self, valf, val):
         '''
         function interpolates cc values to interior faces
@@ -1244,7 +1431,6 @@ class seal(mesh.mesh):
                     - self.rho[i] * self.v[i] * h_psi_grad  \
                     + 1j * self.sigma * self.rho[i] * h_psi ) * cell[i,2]           
             
-
     def _correct_phi(self, phi, rho, rhobc, p_corr, ppbc):
         '''
         Apply corrections to face "mass" fluxes
@@ -1304,11 +1490,60 @@ class seal(mesh.mesh):
         self.u = self.u * self.u_s
         self.v = self.v * self.u_s
         self.press = self.press * self.rho_s * self.u_s ** 2
+        self.t = self.t * self.T_s
       
         x_cc, y_cc, u_cc = sparse_to_full(self.Nx, self.Ny, self.u, self.cell)
         x_cc, y_cc, v_cc = sparse_to_full(self.Nx, self.Ny, self.v, self.cell)
         x_cc, y_cc, p_cc = sparse_to_full(self.Nx, self.Ny, self.press, self.cell)
+        x_cc, y_cc, t_cc = sparse_to_full(self.Nx, self.Ny, self.t, self.cell)
         x_cc, y_cc, h_cc = sparse_to_full(self.Nx, self.Ny, self.hc, self.cell)
+        
+        
+        # width_in = 7.0 # 53mm, for 3 figs wide
+
+        # golden_mean = (np.sqrt(5)-1.0)/2.0         # Aesthetic ratio
+        # fig_width = width_in  # width in inches
+        # fig_height = fig_width * golden_mean   # *golden_mean      # height in inches          
+        # fig_size =  [fig_width,fig_height]                  
+        # params = {   'axes.labelsize': 9,
+                     # 'axes.titlesize': 9,
+                     # 'axes.spines.top': True,
+                     # 'axes.spines.right': True,
+                     # 'axes.spines.bottom': True,
+                     # 'axes.spines.left': True,
+                     # 'xtick.major.size': 3,
+                     # 'xtick.major.width': 0.3,
+                     # 'xtick.minor.size': 3,
+                     # 'xtick.minor.width': 0.3,
+                     # 'ytick.major.size': 3,
+                     # 'ytick.major.width': 0.3,
+                     # 'ytick.minor.size': 3,
+                     # 'ytick.minor.width': 0.3,
+                     # 'axes.linewidth':0.3,
+                     # 'legend.fontsize': 7,
+                     # 'legend.markerscale':1.0,
+                     # 'legend.scatterpoints': 1,
+                     # 'legend.numpoints': 1,
+                     # 'legend.markerscale':1.0,
+                     # 'legend.handlelength':1.5,
+                     # 'legend.handletextpad':0.4,
+                     # 'legend.columnspacing':0.7,
+                     # 'legend.frameon':True,  
+                     # 'xtick.labelsize': 7,
+                     # 'ytick.labelsize': 7,           
+                     # 'figure.figsize': fig_size,
+                     # 'lines.linewidth': 0.75,
+                     # 'lines.markeredgewidth': 0.75,
+                     # 'lines.markersize': 3,
+                     # 'markers.fillstyle' : 'none',
+                     # 'text.usetex': False,  # False for speed
+                     # 'axes.grid': True,
+                     # 'grid.linewidth':0.1 ,
+                     # 'font.family': 'serif',
+                     # 'font.serif': 'Times New Roman',
+                     # 'font.size': 6}
+        # #             'mathtext.fontset': 'cm' }                                                        
+        # plt.rcParams.update(params)
         
 
         plt.figure()
@@ -1318,7 +1553,7 @@ class seal(mesh.mesh):
         plt.xlabel(r'Axial position [m]')
         plt.ylabel(r'Circumferential position [m]')
         plt.title(r'Flow streamlines')
-        plt.savefig('streamlines.png')
+        plt.savefig('streamlines.png',bbox_inches='tight')
         plt.close()
 
         plt.figure()
@@ -1329,7 +1564,7 @@ class seal(mesh.mesh):
         plt.ylabel(r'Circumferential position [m]')
         plt.title(r'Film thickness [\mu m]')
         plt.tight_layout()
-        plt.savefig('film_thickness_contour.png')
+        plt.savefig('film_thickness_contour.png',bbox_inches='tight')
         plt.close()
 
         plt.figure()
@@ -1340,7 +1575,7 @@ class seal(mesh.mesh):
         plt.ylabel(r'Circumferential position [m]')
         plt.title(r'Pressure [bars]')
         plt.tight_layout()
-        plt.savefig('pressure_contour.png')
+        plt.savefig('pressure_contour.png',bbox_inches='tight')
         plt.close()
 
         plt.figure()
@@ -1351,7 +1586,7 @@ class seal(mesh.mesh):
         plt.ylabel(r'Circumferential position [m]')
         plt.title(r'Axial velocity [m/s]')
         plt.tight_layout()
-        plt.savefig('u_contour.png')
+        plt.savefig('u_contour.png',bbox_inches='tight')
         plt.close()
 
         plt.figure()
@@ -1362,7 +1597,18 @@ class seal(mesh.mesh):
         plt.ylabel(r'Circumferential position [m]')
         plt.title(r'Circumferential velocity [m/s]')
         plt.tight_layout()
-        plt.savefig('v_contour.png')
+        plt.savefig('v_contour.png',bbox_inches='tight')
+        plt.close()
+        
+        plt.figure()
+        plt.contourf(x_cc, y_cc, t_cc)
+        plt.colorbar()
+        plt.gca().set_aspect("equal")
+        plt.xlabel(r'Axial position [m]')
+        plt.ylabel(r'Circumferential position [m]')
+        plt.title(r'Temperature [K]')
+        plt.tight_layout()
+        plt.savefig('t_contour.png',bbox_inches='tight')
         plt.close()
         
         if self.debug_seal:
@@ -1375,7 +1621,7 @@ class seal(mesh.mesh):
             plt.ylabel(r'Circumferential position [m]')
             plt.title(r'Residuals')
             plt.tight_layout()
-            plt.savefig('residuals.png')
+            plt.savefig('residuals.png',bbox_inches='tight')
             plt.close()
     
     

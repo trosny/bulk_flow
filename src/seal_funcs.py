@@ -12,25 +12,6 @@ def k_frene(Re):
     '''
     friction 'k' parameters from Frene, Arghir, and Constantinescu 2006
     
-    sample numpy style doc
-    
-    Parameters
-    ----------
-    foo : int, float, str, or tf.Tensor
-        The foo to bar, which has a really really, reeeeeeeeeeeeeeeeally
-        unnecessarily long multiline description.
-    bar : str
-        Bar to use on foo
-        :
-        :class: `numpy.ndarray`
-    baz : float
-        Baz to frobnicate
-
-    Returns
-    -------
-    float
-        The frobnicated baz
-    
     '''
     k_p = np.zeros_like(Re); k_c = np.zeros_like(Re)
     for i, val in enumerate(Re):
@@ -44,6 +25,21 @@ def f_blasius(Re, n, m):
     Matches Black/Yamada equation exactly in the absence of rotation, i.e. the rotational
     Reynolds number is zero.
     Valid for smooth pipes for Re up to 100,000
+    
+    Parameters
+    ----------
+    Re : float, list, or 1D numpy array
+         local Reynolds number
+    n : float
+        exponent in blasius formulation
+    m : float
+        coefficient in blasius formulation
+
+    Returns
+    -------
+    f : numpy array, size and shape as Re
+        friction factor
+        
     '''
     n = n  # 0.316 / 4.0
     m = m
